@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial | Mi Cocina</title>
+    <link rel="stylesheet" href="Style.css">
+</head>
+<body>
+    <div class="inicio-app">
+        <aside class="inicio-sidebar">
+            <p class="inicio-marca">Mi <span>Cocina </span> en <span> CookIQ </span></p>
+            <nav class="inicio-menu"><a href="screen-inicion.html">🍳 Cocinar</a>
+                <a href="despensa.html">🧺 Mi despensa</a>
+                <a href="favoritos.html">♥ Favoritos</a>
+                <a href="historial.html" class="activa">◷ Historial</a>
+                <a href="Perfil.html">👤 Perfil</a>
+            </nav>
+        </aside>
+
+<main class="inicio-contenido">
+    <header class="inicio-encabezado">
+        <h1>Mi historial</h1>
+        <p>Aquí quedan tus búsquedas y recetas revisadas.</p>
+    </header>
+    <section class="historial-bloque">
+        <h2>Búsquedas realizadas</h2>
+        <div class="historial-lista" id="historialBusquedas">
+
+        </div>
+    </section>
+    
+    <section class="historial-bloque">
+        <h2>Recetas vistas</h2>
+        <div class="recetas-grid" id="historialRecetas"></div>
+    </section>
+    
+    <button class="boton-cerrar-sesion" id="limpiarHistorial">Limpiar historial</button>
+</main>
+</div>
+<script src="app.js"></script>
+<div class="modal-inicio" id="modalHistorial"><section class="modal-panel" id="detalleHistorial"></section></div>
+</body>
+</html>

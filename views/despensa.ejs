@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Despensa | Mi Cocina</title>
+        <link rel="stylesheet" href="Style.css">
+    </head>
+<body>
+    <div class="inicio-app">
+        <aside class="inicio-sidebar">
+            <p class="inicio-marca">Mi <span>Cocina </span> en <span> CookIQ </span></p>
+            <nav class="inicio-menu">
+                <a href="screen-inicion.html">🍳 Cocinar</a>
+                <a href="despensa.html" class="activa">🧺 Mi despensa</a>
+                <a href="favoritos.html">♥ Favoritos</a>
+                <a href="historial.html">◷ Historial</a>
+                <a href="Perfil.html">👤 Perfil</a></nav>
+            </aside>
+<main class="inicio-contenido">
+    <header class="inicio-encabezado">
+        <h1>Mi despensa</h1>
+        <p>Organiza lo que tienes y lo que necesitas comprar.</p>
+    </header><section class="historial-bloque">
+        
+        <h2>Ingredientes disponibles</h2>
+        <div class="agregar-linea">
+            <input id="nuevoIngrediente" placeholder="Ej: arroz, tomate, pollo" autocomplete="off">
+            <button class="boton-generar" id="agregarIngredienteDespensa">Agregar ingrediente</button>
+        </div>
+        
+        <div class="sugerencias" id="sugerenciasDespensa"></div>
+        
+        <div class="ingredientes-elegidos" id="listaDespensa"></div>
+    
+    </section><section class="historial-bloque">
+        <h2>Lista de compras</h2>
+        
+        <div class="historial-lista" id="listaCompras"></div>
+        
+        <div class="perfil-acciones">
+            <button class="boton-cerrar-sesion" id="limpiarCompras">Limpiar lista de compras</button>
+            <button class="boton-generar" id="completarCompras">Lista completada</button>
+        </div>
+    </section>
+</main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

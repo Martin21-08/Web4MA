@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="Style.css">
+  <title>Crear cuenta</title>
+</head>
+<body>
+  <main class="modal-fondo">
+    <form class="modal-caja" id="formRegistro">
+      <div class="icono-cocina">🥑</div>
+      <h2>Únete a la cocina</h2>
+      <p class="subtitulo">Crea tu cuenta y descubre nuevas ideas.</p>
+      <input id="registroNombre" type="text" placeholder="Nombre" aria-label="Nombre" required>
+      <input id="registroApellido" type="text" placeholder="Apellido" aria-label="Apellido" required>
+      <input id="registroCorreo" type="email" placeholder="Correo electrónico" aria-label="Correo electrónico" required>
+      <input id="registroTelefono" type="tel" placeholder="Teléfono" aria-label="Teléfono">
+      <input id="registroNacimiento" type="date" aria-label="Fecha de nacimiento">
+      <input id="registroPassword" type="password" placeholder="Contraseña" aria-label="Contraseña" required>
+      <button class="btn-register" type="submit">Crear cuenta</button>
+      <button class="btn-secundario" type="button">Cancelar</button>
+      <a href="login.html" class="login-link">¿Ya tienes cuenta? Inicia sesión</a>
+    </form>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil | Mi Cocina</title>
+  <link rel="stylesheet" href="Style.css">
+</head>
+<body>
+  <div class="inicio-app">
+    <aside class="inicio-sidebar">
+      <p class="inicio-marca">Mi <span>Cocina </span> en <span> CookIQ </span></p>
+      <nav class="inicio-menu">
+        <a href="screen-inicion.html">🍳 Cocinar</a>
+        <a href="despensa.html">🧺 Mi despensa</a>
+        <a href="favoritos.html">♥ Favoritos</a>
+        <a href="historial.html">◷ Historial</a>
+        <a href="Perfil.html" class="activa">👤 Perfil</a>
+      </nav>
+    </aside>
+
+    <main class="inicio-contenido perfil-contenido">
+        <header class="inicio-encabezado">
+            <h1>Mi perfil</h1><p>Completa tus datos para personalizar tu experiencia en la cocina.</p>
+        </header>
+
+      <form class="perfil-formulario" id="formPerfil">
+
+        <section class="perfil-seccion">
+          <h2>Datos personales</h2>
+          <div class="perfil-campos">
+
+            <label>Nombre<input id="perfilNombre" type="text" placeholder="Tu nombre"></label>
+            <label>Apellido<input id="perfilApellido" type="text" placeholder="Tu apellido"></label>
+            <label>Correo electrónico<input id="perfilCorreo" type="email" placeholder="correo@ejemplo.com"></label>
+            <label>Teléfono<input id="perfilTelefono" type="tel" placeholder="+56 9 1234 5678"></label>
+            <label>Fecha de nacimiento<input id="perfilNacimiento" type="date"></label>
+
+          </div>
+        </section>
+
+        <section class="perfil-seccion">
+          <h2>Alergias e intolerancias</h2>
+          <p class="perfil-ayuda">Selecciona las opciones que debemos considerar al sugerirte recetas.</p>
+
+          <div class="perfil-opciones">
+            <label><input type="checkbox"> Gluten</label><label><input type="checkbox"> Lactosa</label><label><input type="checkbox"> Huevo</label><label><input type="checkbox"> Frutos secos</label><label><input type="checkbox"> Mariscos</label><label><input type="checkbox"> Soja</label><label><input type="checkbox"> Maní</label><label><input type="checkbox"> Vegetariano</label>
+          </div>
+        </section>
+
+        <div class="perfil-acciones">
+            <button type="submit" class="boton-generar">Guardar cambios</button>
+
+            <button type="button" class="boton-cerrar-sesion" onclick="window.location.href='login.html'">Cerrar sesión</button>
+        </div>
+      </form>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

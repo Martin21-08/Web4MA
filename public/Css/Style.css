@@ -1,0 +1,225 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+:root { --coral: #ff6b5f; --coral-dark: #f05252; --cream: #fffaf4; --text: #41372f; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; background: #e7b49b url('https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1800&q=85') center / cover no-repeat; }
+.modal-fondo { 
+    min-height: 100vh; 
+    display: grid; 
+    place-items: center; 
+    padding: 24px; 
+    background: linear-gradient(135deg, rgba(62, 39, 35, .48), rgba(255, 107, 95, .28)); 
+}
+
+.modal-caja { 
+    width: min(100%, 390px); 
+    padding: 38px 34px 30px; 
+    display: flex; flex-direction: column; 
+    gap: 14px; 
+    background: rgba(255, 250, 244, .94); 
+    border: 1px solid rgba(255, 255, 255, .8); 
+    border-radius: 24px; 
+    box-shadow: 0 20px 50px rgba(58, 38, 30, .3); 
+    text-align: center; 
+}
+.icono-cocina { 
+    width: 54px; 
+    height: 54px; 
+    margin: -62px auto 5px; 
+    display: grid; 
+    place-items: center; 
+    border-radius: 50%; 
+    background: var(--coral); 
+    color: white; 
+    font-size: 25px; 
+    box-shadow: 0 8px 18px rgba(240, 82, 82, .35); 
+}
+
+.modal-caja h2 { 
+    margin: 0; 
+    color: var(--text); 
+    font-size: 28px; 
+}
+
+.subtitulo { 
+    margin: -6px 0 8px; 
+    color: #806e60; 
+    font-size: 14px; 
+}
+
+.modal-caja input { 
+    width: 100%; 
+    padding: 13px 15px; 
+    border: 1px solid #eadbd0; 
+    border-radius: 12px; 
+    outline: none; 
+    background: white; 
+    color: var(--text); 
+    font: inherit; 
+}
+
+.modal-caja input:focus { 
+    border-color: var(--coral); 
+    box-shadow: 0 0 0 3px rgba(255, 107, 95, .16); 
+}
+
+.btn-login, .btn-register { 
+    padding: 13px; 
+    border: 0; 
+    border-radius: 12px; 
+    background: linear-gradient(135deg, var(--coral), var(--coral-dark)); 
+    color: white; 
+    font: 800 15px 'Nunito', sans-serif; 
+    cursor: pointer; 
+    transition: transform .2s, box-shadow .2s; 
+}
+
+.btn-login:hover, .btn-register:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 8px 16px rgba(240, 82, 82, .28); 
+}
+
+.btn-secundario { 
+    padding: 10px; 
+    border: 0; 
+    background: transparent; 
+    color: #8c7666; 
+    font: 700 14px 'Nunito', sans-serif; 
+    cursor: pointer; 
+}
+
+.registrar-link, .login-link { 
+    margin-top: 2px; 
+    color: var(--coral-dark); 
+    font-size: 14px; 
+    font-weight: 800; 
+    text-decoration: none; 
+}
+
+.registrar-link:hover, .login-link:hover { 
+    text-decoration: underline; 
+}
+
+@media (max-width: 480px) { .modal-caja { padding: 34px 24px 24px; } }
+
+
+/* ========================================================================
+   PANTALLA DE INICIO: estructura principal, fondo y barra lateral
+   Todo lo que aparece desde aquí corresponde a screen-inicion.html.
+   ======================================================================== */
+
+.inicio-app { min-height: 100vh; display: flex; color: var(--text); background: #fff7ef; }
+.inicio-sidebar { width: 235px; min-height: 100vh; position: fixed; padding: 28px 17px; color: white; background: linear-gradient(rgba(64, 43, 34, .88), rgba(64, 43, 34, .88)), url('https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=80') center / cover; }
+.inicio-marca { margin: 0 0 38px 10px; font-size: 25px; font-weight: 800; }
+.inicio-marca span { color: #ffb6a6; }
+.inicio-menu { display: grid; gap: 8px; }
+.inicio-menu a { padding: 12px 14px; border-radius: 12px; color: #f8e9e1; font-weight: 700; text-decoration: none; }
+.inicio-menu a:hover, .inicio-menu a.activa { background: rgba(255, 255, 255, .17); color: white; }
+.inicio-contenido { width: min(1120px, calc(100% - 235px)); margin-left: 235px; padding: 45px clamp(24px, 5vw, 70px); }
+.inicio-encabezado h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); }
+.inicio-encabezado p { color: #806e60; margin: 8px 0 28px; }
+
+
+/* ------------------------------------------------------------------------
+   BUSCADOR: ingredientes seleccionados, sugerencias y botón de filtros
+   ------------------------------------------------------------------------ */
+
+.buscador-caja { padding: 22px; border: 1px solid #f0d8cb; border-radius: 22px; background: rgba(255, 255, 255, .9); box-shadow: 0 12px 28px rgba(118, 76, 57, .08); }
+.buscador-linea { display: flex; gap: 10px; align-items: center; }
+.buscador-linea input { flex: 1; min-width: 0; padding: 14px; border: 1px solid #eadbd0; border-radius: 12px; outline: none; font: inherit; }
+.buscador-linea input:focus { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(255, 107, 95, .14); }
+.boton-tuerca { width: 47px; height: 47px; border: 0; border-radius: 12px; background: #fff0e9; color: var(--coral-dark); font-size: 21px; cursor: pointer; }
+.sugerencias { display: flex; flex-wrap: wrap; gap: 8px; min-height: 5px; margin-top: 10px; }
+.sugerencia, .chip-ingrediente { padding: 7px 11px; border: 1px solid #f1d8ca; border-radius: 999px; background: #fff7f1; color: #6d5142; font: 700 13px 'Nunito', sans-serif; cursor: pointer; }
+.sugerencia:hover { background: #ffe3da; }
+.ingredientes-elegidos { display: flex; flex-wrap: wrap; gap: 8px; margin: 17px 0 14px; }
+.chip-ingrediente { background: #ffdfd5; border-color: #ffc6b7; color: #a33e35; cursor: default; }
+.chip-ingrediente button { margin-left: 5px; border: 0; background: transparent; color: inherit; font-weight: 800; cursor: pointer; }
+.opciones-busqueda { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+.faltantes-check { color: #775e50; font-size: 14px; font-weight: 700; }
+.faltantes-check input { accent-color: var(--coral); }
+.boton-generar { padding: 12px 20px; border: 0; border-radius: 12px; background: linear-gradient(135deg, var(--coral), var(--coral-dark)); color: white; font: 800 15px 'Nunito', sans-serif; cursor: pointer; }
+
+
+/* ------------------------------------------------------------------------
+   RECETAS: tarjetas de resultados y detalle ampliado
+   ------------------------------------------------------------------------ */
+
+.resultados-titulo { margin: 38px 0 16px; font-size: 23px; }
+.recetas-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.receta-card { overflow: hidden; border: 1px solid #eedbd0; border-radius: 18px; background: white; box-shadow: 0 8px 18px rgba(100, 62, 44, .07); }
+.receta-imagen { min-height: 108px; padding: 18px; display: flex; align-items: end; color: white; font-size: 37px; background: linear-gradient(135deg, rgba(77, 42, 23, .15), rgba(255, 107, 95, .22)), url('https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=700&q=80') center / cover; }
+.favorito-corazon { width: 40px; height: 40px; margin-left: auto; align-self: flex-start; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .9); color: #8a6255; font-size: 24px; line-height: 1; cursor: pointer; }
+.favorito-corazon.activo { background: #fff0ed; color: #e64b43; }
+.favorito-mensaje { margin: -4px 0 12px !important; color: #d8473f !important; font-size: 13px !important; font-weight: 800; }
+
+
+/* ========================================================================
+   DESPENSA E HISTORIAL: listas guardadas, compras y acciones rápidas
+   ======================================================================== */
+
+.historial-bloque { margin-bottom: 22px; padding: 23px; border: 1px solid #efdcd1; border-radius: 19px; background: rgba(255,255,255,.92); }
+.historial-bloque h2 { margin: 0 0 16px; font-size: 21px; }
+.historial-lista { display: grid; gap: 9px; }
+.historial-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 11px; background: #fff7f2; color: #675246; }
+.historial-item small { color: #90796a; font-size: 12px; }
+.historial-item button { border: 0; background: transparent; color: #ca4c42; font-size: 18px; cursor: pointer; }
+.agregar-linea { display: flex; gap: 10px; }
+.agregar-linea input { flex: 1; min-width: 0; padding: 12px; border: 1px solid #eadbd0; border-radius: 11px; font: inherit; outline: none; }
+.link-compras { display: block; margin: 8px 0 0; border: 0; padding: 0; background: transparent; color: #bd6d23; font: 800 13px 'Nunito',sans-serif; text-decoration: underline; cursor: pointer; }
+.tarjeta-clickable { cursor: pointer; transition: transform .2s, box-shadow .2s; }
+.tarjeta-clickable:hover { transform: translateY(-3px); box-shadow: 0 12px 22px rgba(100, 62, 44, .14); }
+@media (max-width: 570px) { .agregar-linea { flex-direction: column; } .agregar-linea .boton-generar { width: 100%; } }
+.receta-cuerpo { padding: 18px; }
+.receta-cuerpo h3 { margin: 0 0 8px; font-size: 20px; }
+.receta-cuerpo p { margin: 0 0 12px; color: #765f51; font-size: 14px; line-height: 1.45; }
+.receta-datos { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 13px; color: #9b5144; font-size: 12px; font-weight: 800; }
+.faltantes-lista { margin: 0 0 14px; padding: 10px; border-radius: 10px; background: #fff4da; color: #88621d; font-size: 13px; }
+.boton-ver { width: 100%; padding: 10px; border: 1px solid #ffb6a6; border-radius: 10px; background: #fff2ee; color: #c64c42; font: 800 14px 'Nunito', sans-serif; cursor: pointer; }
+.sin-resultados { grid-column: 1 / -1; padding: 34px; border: 2px dashed #ebd5c8; border-radius: 16px; color: #806e60; text-align: center; }
+.modal-inicio { position: fixed; inset: 0; z-index: 5; display: none; place-items: center; padding: 20px; background: rgba(54, 36, 29, .54); }
+.modal-inicio.abierto { display: grid; }
+.modal-panel { width: min(100%, 570px); max-height: 88vh; overflow: auto; padding: 28px; border-radius: 20px; background: var(--cream); box-shadow: 0 20px 50px rgba(0, 0, 0, .25); }
+.modal-panel h2 { margin: 0 0 9px; }
+.modal-panel h3 { margin: 22px 0 8px; }
+.modal-panel p, .modal-panel li { color: #715c4f; line-height: 1.55; }
+.modal-cerrar { float: right; border: 0; background: #ffe5dc; border-radius: 9px; padding: 7px 10px; color: #a44237; font-weight: 800; cursor: pointer; }
+
+
+/* ------------------------------------------------------------------------
+   FILTROS: ventana de la tuerca y sus opciones de selección
+   ------------------------------------------------------------------------ */
+
+.filtros-grupo { margin-top: 18px; }
+.filtros-grupo h3 { margin: 0 0 9px; font-size: 16px; }
+.filtros-opciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.filtro-opcion { padding: 8px 11px; border: 1px solid #ead8cb; border-radius: 10px; background: white; color: #705b4d; font: 700 13px 'Nunito', sans-serif; cursor: pointer; }
+.filtro-opcion.seleccionada { border-color: var(--coral); background: #ffe5dd; color: #b7493f; }
+.evitar-buscar { width: 100%; padding: 10px; border: 1px solid #ead8cb; border-radius: 10px; outline: none; font: inherit; }
+.acciones-filtro { display: flex; justify-content: end; gap: 10px; margin-top: 24px; }
+
+@media (max-width: 850px) { .inicio-sidebar { width: 76px; padding: 24px 10px; } .inicio-marca { margin-left: 0; font-size: 0; text-align: center; } .inicio-marca::after { content: '🍳'; font-size: 25px; } .inicio-menu a { padding: 13px; font-size: 0; text-align: center; } .inicio-menu a::first-letter { font-size: 19px; } .inicio-contenido { width: calc(100% - 76px); margin-left: 76px; } .recetas-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 570px) { .inicio-contenido { padding: 30px 16px; } .buscador-linea { align-items: stretch; } .recetas-grid { grid-template-columns: 1fr; } .opciones-busqueda { align-items: stretch; } .boton-generar { width: 100%; } }
+
+
+/* ========================================================================
+   PÁGINA DE PERFIL: datos del usuario, alergias e intolerancias
+   ======================================================================== */
+
+.perfil-contenido { max-width: 1000px; }
+.perfil-formulario { display: grid; gap: 20px; }
+.perfil-seccion { padding: 25px; border: 1px solid #efdcd1; border-radius: 20px; background: rgba(255, 255, 255, .92); box-shadow: 0 10px 22px rgba(118, 76, 57, .07); }
+.perfil-seccion h2 { margin: 0 0 18px; font-size: 21px; }
+.perfil-campos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.perfil-campos label { display: grid; gap: 7px; color: #695548; font-size: 14px; font-weight: 800; }
+.perfil-campos input { width: 100%; padding: 12px; border: 1px solid #eadbd0; border-radius: 11px; outline: none; color: var(--text); font: inherit; }
+.perfil-campos input:focus { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(255, 107, 95, .14); }
+.perfil-ayuda { margin: -8px 0 16px; color: #806e60; font-size: 14px; }
+.perfil-opciones { display: flex; flex-wrap: wrap; gap: 10px; }
+.perfil-opciones label { padding: 9px 12px; border: 1px solid #ecd8cb; border-radius: 999px; background: #fff8f4; color: #705b4d; font-size: 14px; font-weight: 700; cursor: pointer; }
+.perfil-opciones input { margin-right: 5px; accent-color: var(--coral); }
+.perfil-acciones { display: flex; justify-content: space-between; gap: 12px; margin-top: 3px; }
+.boton-cerrar-sesion { padding: 12px 18px; border: 1px solid #e7a59c; border-radius: 12px; background: #fff4f1; color: #bc4439; font: 800 15px 'Nunito', sans-serif; cursor: pointer; }
+.boton-cerrar-sesion:hover { background: #ffe2dc; }
+
+@media (max-width: 570px) { .perfil-campos { grid-template-columns: 1fr; } .perfil-acciones { flex-direction: column; } .perfil-acciones .boton-generar { width: 100%; } }
