@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cocinar | Mi cocina</title>
-  <link rel="stylesheet" href="Style.css">
+  <link rel="stylesheet" href="/Css/Style.css">
 </head>
 <body>
-  <%- include('Partials/Sidebar') %>
+  <%- include('Partials/Sidebar') %>  
     <main class="inicio-contenido">
-      <header class="inicio-encabezado">
+      <header class="inicio-encabezado"> 
         <h1>¿Qué deseas cocinar hoy?</h1>
         <p>Elige tus ingredientes y obtén ideas ricas para preparar.</p>
       </header>
@@ -30,8 +30,6 @@
 
       <h2 class="resultados-titulo">Tus recetas</h2>
       <section class="recetas-grid" id="recetas"></section>
-    </main>
-  </div>
 
   <div class="modal-inicio" id="modalFiltros">
     <section class="modal-panel">
@@ -47,7 +45,7 @@
   <div class="modal-inicio" id="modalReceta">
     <section class="modal-panel" id="detalleReceta"></section>
   </div>
-
-  <script src="app.js"></script>
+</main>
+  <script src="/Js/app.js"></script>
 </body>
 </html>

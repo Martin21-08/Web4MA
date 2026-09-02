@@ -5,7 +5,7 @@ const favoritos = () => leer('miCocinaFavoritos');
 
 // Registro y perfil.
 const formRegistro = document.getElementById('formRegistro');
-if (formRegistro) formRegistro.onsubmit = e => { e.preventDefault(); guardar('miCocinaPerfil', { nombre: registroNombre.value.trim(), apellido: registroApellido.value.trim(), correo: registroCorreo.value.trim(), telefono: registroTelefono.value.trim(), nacimiento: registroNacimiento.value }); location.href = 'screen-inicion.html'; };
+if (formRegistro) formRegistro.onsubmit = e => { e.preventDefault(); guardar('miCocinaPerfil', { nombre: registroNombre.value.trim(), apellido: registroApellido.value.trim(), correo: registroCorreo.value.trim(), telefono: registroTelefono.value.trim(), nacimiento: registroNacimiento.value }); location.href = 'lobby'; };
 const formPerfil = document.getElementById('formPerfil');
 if (formPerfil) { const datos = leer('miCocinaPerfil', {}); ['Nombre', 'Apellido', 'Correo', 'Telefono', 'Nacimiento'].forEach(x => document.getElementById('perfil' + x).value = datos[x.toLowerCase().replace('telefono','telefono').replace('nacimiento','nacimiento')] || ''); formPerfil.onsubmit = e => { e.preventDefault(); guardar('miCocinaPerfil', { nombre: perfilNombre.value.trim(), apellido: perfilApellido.value.trim(), correo: perfilCorreo.value.trim(), telefono: perfilTelefono.value.trim(), nacimiento: perfilNacimiento.value }); }; }
 
