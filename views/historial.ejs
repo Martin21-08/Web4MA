@@ -8,15 +8,7 @@
 </head>
 <body>
     <div class="inicio-app">
-        <aside class="inicio-sidebar">
-            <p class="inicio-marca">Mi <span>Cocina </span> en <span> CookIQ </span></p>
-            <nav class="inicio-menu"><a href="screen-inicion.html">🍳 Cocinar</a>
-                <a href="despensa.html">🧺 Mi despensa</a>
-                <a href="favoritos.html">♥ Favoritos</a>
-                <a href="historial.html" class="activa">◷ Historial</a>
-                <a href="Perfil.html">👤 Perfil</a>
-            </nav>
-        </aside>
+         <%- include('Partials/Sidebar') %>
 
 <main class="inicio-contenido">
     <header class="inicio-encabezado">
@@ -38,7 +30,7 @@
     <button class="boton-cerrar-sesion" id="limpiarHistorial">Limpiar historial</button>
 </main>
 </div>
-<script src="/Js/app.js"></script>
 <div class="modal-inicio" id="modalHistorial"><section class="modal-panel" id="detalleHistorial"></section></div>
+<script src="/Js/app.js"></script>
 </body>
 </html>

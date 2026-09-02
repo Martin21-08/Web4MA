@@ -1,84 +1,730 @@
-// Utilidades: datos persistentes para todas las pantallas.
-const leer = (clave, porDefecto = []) => JSON.parse(localStorage.getItem(clave) || JSON.stringify(porDefecto));
-const guardar = (clave, datos) => localStorage.setItem(clave, JSON.stringify(datos));
+// ============================================================================
+// PANTALLA DE INICIO DE SESIÓN
+// Solo se activa cuando la vista contiene sus controles de acceso.
+// ============================================================================
+
+// ============================================================================
+// CUENTAS Y PERFILES
+// Cada perfil se guarda usando el nombre como identificador.
+// ============================================================================
+
+const obtenerPerfiles = () => {
+  const perfiles = leer('miCocinaPerfiles', {});
+  const perfilAnterior = leer('miCocinaPerfil', null);
+
+  // Migra el formato anterior de un único perfil al nuevo formato.
+  if (perfilAnterior?.nombre && !perfiles[perfilAnterior.nombre]) {
+    perfiles[perfilAnterior.nombre] = perfilAnterior;
+    guardar('miCocinaPerfiles', perfiles);
+  }
+  return perfiles;
+};
+
+const obtenerPerfilActivo = () => {
+  const nombreActivo = localStorage.getItem('miCocinaUsuarioActivo');
+  return nombreActivo ? obtenerPerfiles()[nombreActivo] : null;
+};
+
+const guardarPerfilActivo = perfil => {
+  const perfiles = obtenerPerfiles();
+  perfiles[perfil.nombre] = perfil;
+  guardar('miCocinaPerfiles', perfiles);
+  guardar('miCocinaPerfil', perfil);
+};
+
+const registroUsuario = () => {
+  const formulario = document.getElementById('formRegistro');
+  if (!formulario) return;
+
+  formulario.addEventListener('submit', evento => {
+    evento.preventDefault();
+    const perfil = {
+      nombre: document.getElementById('registroNombre').value.trim(),
+      apellido: document.getElementById('registroApellido').value.trim(),
+      correo: document.getElementById('registroCorreo').value.trim(),
+      telefono: document.getElementById('registroTelefono').value.trim(),
+      nacimiento: document.getElementById('registroNacimiento').value,
+      password: document.getElementById('registroPassword').value,
+      alergias: []
+    };
+    const perfiles = obtenerPerfiles();
+
+    if (!perfil.nombre || !perfil.password || !perfil.apellido || !perfil.correo || !perfil.telefono || !perfil.nacimiento) {
+      alert('Por favor, completa todos los campos para crear la cuenta.');
+      return;
+    }
+    if (perfiles[perfil.nombre]) {
+      alert('Ese nombre de usuario ya está registrado.');
+      return;
+    }
+
+    guardarPerfilActivo(perfil);
+    alert('Cuenta creada exitosamente. Ahora puedes iniciar sesión.');
+    window.location.href = '/';
+  });
+};
+
+// Valida el nombre de usuario y la contraseña de la cuenta registrada.
+const iniciarSesion = () => {
+  const botonEntrar = document.getElementById('go');
+  const cajaUsuario = document.getElementById('Usuario');
+  const cajaContraseña = document.getElementById('Password');
+  if (!botonEntrar || !cajaUsuario || !cajaContraseña) return;
+
+  const perfiles = obtenerPerfiles();
+
+  botonEntrar.addEventListener('click', evento => {
+    evento.preventDefault();
+    const nombreIngresado = cajaUsuario.value.trim();
+    const contraseñaIngresada = cajaContraseña.value;
+    const perfil = perfiles[nombreIngresado];
+
+    if (perfil && contraseñaIngresada === perfil.password) {
+      localStorage.setItem('miCocinaUsuarioActivo', perfil.nombre);
+      localStorage.setItem('miCocinaPerfil', JSON.stringify(perfil));
+      window.location.href = '/lobby';
+    } else {
+      alert('Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo.');
+    }
+  });
+};
+
+// ============================================================================
+// UTILIDADES GENERALES
+// ============================================================================
+
+const leer = (clave, porDefecto = []) => {
+  const valor = localStorage.getItem(clave);
+  return valor ? JSON.parse(valor) : porDefecto;
+};
+
+const guardar = (clave, datos) => {
+  localStorage.setItem(clave, JSON.stringify(datos));
+};
+
+const obtenerElemento = id => document.getElementById(id);
 const favoritos = () => leer('miCocinaFavoritos');
 
-// Registro y perfil.
-const formRegistro = document.getElementById('formRegistro');
-if (formRegistro) formRegistro.onsubmit = e => { e.preventDefault(); guardar('miCocinaPerfil', { nombre: registroNombre.value.trim(), apellido: registroApellido.value.trim(), correo: registroCorreo.value.trim(), telefono: registroTelefono.value.trim(), nacimiento: registroNacimiento.value }); location.href = 'lobby'; };
-const formPerfil = document.getElementById('formPerfil');
-if (formPerfil) { const datos = leer('miCocinaPerfil', {}); ['Nombre', 'Apellido', 'Correo', 'Telefono', 'Nacimiento'].forEach(x => document.getElementById('perfil' + x).value = datos[x.toLowerCase().replace('telefono','telefono').replace('nacimiento','nacimiento')] || ''); formPerfil.onsubmit = e => { e.preventDefault(); guardar('miCocinaPerfil', { nombre: perfilNombre.value.trim(), apellido: perfilApellido.value.trim(), correo: perfilCorreo.value.trim(), telefono: perfilTelefono.value.trim(), nacimiento: perfilNacimiento.value }); }; }
+// ============================================================================
+// SIDEBAR
+// Marca como activa la pestaña correspondiente a la URL actual.
+// ============================================================================
 
-// Inicio: buscador, filtros, recetas, favoritos, historial y compras.
-if (document.getElementById('buscarIngrediente')) {
-  const $ = id => document.getElementById(id);
-  const disponibles = ['tomate','pollo','arroz','papa','cebolla','zanahoria','ajo','huevo','queso','pasta','atún','palta','espinaca','leche','champiñón','lentejas'];
-  const recetas = [
-    {nombre:'Salteado casero', icono:'🥘', descripcion:'Una preparación rápida, colorida y llena de sabor.', faltantes:['pimentón','aceite de oliva'], pasos:['Lava las verduras y córtalas en tiras del mismo tamaño para que se cocinen parejo.','Calienta una sartén grande a fuego medio-alto, agrega aceite y sofríe la cebolla con el ajo por dos minutos.','Incorpora el resto de ingredientes, mezcla constantemente y cocina hasta que estén dorados pero aún jugosos.','Prueba, ajusta sal y pimienta, y sirve de inmediato con arroz o pan.']},
-    {nombre:'Bowl cremoso', icono:'🥗', descripcion:'Un bowl suave y nutritivo para disfrutar sin complicaciones.', faltantes:['yogur natural','limón'], pasos:['Lava y corta los ingredientes frescos; cocina el arroz o la base elegida siguiendo las indicaciones del envase.','Mezcla yogur, jugo de limón, sal y un chorrito de aceite hasta obtener una salsa cremosa.','Arma el bowl por capas: primero la base tibia, luego las verduras y la proteína.','Termina con la salsa y mezcla suavemente antes de servir.']},
-    {nombre:'Tortilla dorada', icono:'🍳', descripcion:'Una receta sencilla para aprovechar tu despensa.', faltantes:['perejil','pimienta'], pasos:['Pela y corta los vegetales en cubos pequeños para que se cocinen de forma uniforme.','Saltéalos en una sartén antiadherente con aceite hasta que estén blandos y ligeramente dorados.','Bate los huevos con sal y pimienta, viértelos sobre los vegetales y mueve suavemente la sartén.','Cocina tapado a fuego bajo, da vuelta con ayuda de un plato y termina hasta que ambos lados estén dorados.']}
-  ];
-  let elegidos = [], evitados = [], tiempo = '30 min', porciones = '2';
-  const pintar = () => $('ingredientesElegidos').innerHTML = elegidos.map((x,i) => `<span class="chip-ingrediente">${x}<button onclick="quitarIngrediente(${i})">×</button></span>`).join('');
-  const sugerir = (texto, destino, funcion) => { const lista = disponibles.filter(x => x.includes(texto.toLowerCase()) && !elegidos.includes(x) && !evitados.includes(x)); destino.innerHTML = texto ? lista.map(x => `<button class="sugerencia" onclick="${funcion}('${x}')">+ ${x}</button>`).join('') : ''; };
-  buscarIngrediente.oninput = e => sugerir(e.target.value, sugerencias, 'agregarIngrediente');
-  buscarEvitar.oninput = e => sugerir(e.target.value, sugerenciasEvitar, 'agregarEvitado');
-  window.agregarIngrediente = x => { if (!elegidos.includes(x)) elegidos.push(x); buscarIngrediente.value = ''; sugerencias.innerHTML = ''; pintar(); };
-  window.quitarIngrediente = i => { elegidos.splice(i,1); pintar(); };
-  window.agregarEvitado = x => { evitados.push(x); buscarEvitar.value=''; sugerenciasEvitar.innerHTML=''; ingredientesEvitados.innerHTML = evitados.map((v,i)=>`<span class="chip-ingrediente">${v}<button onclick="quitarEvitado(${i})">×</button></span>`).join(''); };
-  window.quitarEvitado = i => { evitados.splice(i,1); ingredientesEvitados.innerHTML = evitados.map((v,j)=>`<span class="chip-ingrediente">${v}<button onclick="quitarEvitado(${j})">×</button></span>`).join(''); };
-  const opciones = (id, valores, actual, cambiar) => { $(id).innerHTML=valores.map(x=>`<button class="filtro-opcion ${x===actual?'seleccionada':''}" data-v="${x}">${x}</button>`).join(''); [...$(id).children].forEach(b=>b.onclick=()=>{[...$(id).children].forEach(x=>x.classList.remove('seleccionada'));b.classList.add('seleccionada');cambiar(b.dataset.v);});};
-  opciones('tiempos',['10 min','20 min','30 min','50 min','1 hora','Más de 2 horas'],tiempo,x=>tiempo=x); opciones('porciones',['2','4','6','8','10'],porciones,x=>porciones=x);
-  abrirFiltros.onclick=()=>modalFiltros.classList.add('abierto'); document.querySelectorAll('[data-cerrar]').forEach(b=>b.onclick=()=>$(b.dataset.cerrar).classList.remove('abierto'));
-  const ingredientesParaReceta = () => usarDespensa.checked ? [...new Set([...elegidos, ...leer('miCocinaDespensa')])] : elegidos;
-  const esFavorito = r => favoritos().some(x=>x.nombre===r.nombre);
-  function generar(registrar = true) {
-    const ingredientes = ingredientesParaReceta(), base = ingredientes.length ? ingredientes.join(', ') : 'los ingredientes de tu cocina';
-    if (registrar) { const historial = leer('miCocinaHistorialBusquedas'); historial.unshift({ingredientes: ingredientes.length ? ingredientes : ['Sin ingredientes seleccionados'], fecha: new Date().toLocaleString('es-CL')}); guardar('miCocinaHistorialBusquedas', historial.slice(0,30)); }
-    $('recetas').innerHTML = recetasBaseRender(base).join('');
+const iniciarSidebar = () => {
+  const rutaActual = window.location.pathname.replace(/\/$/, '') || '/';
+
+  document.querySelectorAll('.inicio-menu a').forEach(enlace => {
+    const rutaEnlace = new URL(enlace.href, window.location.origin).pathname.replace(/\/$/, '');
+    enlace.classList.toggle('activa', rutaEnlace === rutaActual);
+  });
+};
+
+const ingredientesDisponibles = [
+  'tomate', 'pollo', 'arroz', 'papa', 'cebolla', 'zanahoria', 'ajo',
+  'huevo', 'queso', 'pasta', 'atún', 'palta', 'espinaca', 'leche',
+  'champiñón', 'lentejas'
+];
+
+// ============================================================================
+// PANTALLA DE PERFIL
+// Carga los datos guardados y permite actualizar la información personal.
+// ============================================================================
+
+const iniciarPerfil = () => {
+  const formulario = obtenerElemento('formPerfil');
+  if (!formulario) return;
+
+  const campos = {
+    nombre: 'perfilNombre',
+    apellido: 'perfilApellido',
+    correo: 'perfilCorreo',
+    telefono: 'perfilTelefono',
+    nacimiento: 'perfilNacimiento'
+  };
+  const datos = obtenerPerfilActivo() || {};
+  const alergias = datos.alergias || [];
+
+  Object.entries(campos).forEach(([clave, id]) => {
+    obtenerElemento(id).value = datos[clave] || '';
+  });
+  document.querySelectorAll('#formPerfil input[name="alergias"]').forEach(casilla => {
+    casilla.checked = alergias.includes(casilla.value);
+  });
+
+  const guardarCambios = () => {
+    const perfilActualizado = {
+      ...datos,
+      ...Object.fromEntries(
+        Object.entries(campos).map(([clave, id]) => [
+          clave,
+          obtenerElemento(id).value.trim()
+        ])
+      ),
+      alergias: [...document.querySelectorAll('#formPerfil input[name="alergias"]:checked')]
+        .map(casilla => casilla.value)
+    };
+    guardarPerfilActivo(perfilActualizado);
+    return perfilActualizado;
+  };
+
+  formulario.onsubmit = evento => {
+    evento.preventDefault();
+    guardarCambios();
+    alert('Cambios guardados correctamente.');
+  };
+
+  obtenerElemento('cerrarSesion').onclick = () => {
+    guardarCambios();
+    localStorage.removeItem('miCocinaRecetasGeneradas');
+    localStorage.removeItem('miCocinaUsuarioActivo');
+    window.location.href = '/';
+  };
+};
+
+// ============================================================================
+// PANTALLA LOBBY: BUSCADOR Y RECETAS
+// Gestiona ingredientes, filtros, resultados, favoritos e historial.
+// ============================================================================
+
+const recetasDisponibles = [
+  {
+    nombre: 'Salteado casero',
+    icono: '🥘',
+    dificultad: 'Fácil',
+    descripcion: 'Una preparación rápida, colorida y llena de sabor.',
+    faltantes: ['pimentón', 'aceite de oliva'],
+    pasos: [
+      'Lava las verduras y córtalas en tiras del mismo tamaño para que se cocinen parejo.',
+      'Calienta una sartén grande a fuego medio-alto, agrega aceite y sofríe la cebolla con el ajo por dos minutos.',
+      'Incorpora el resto de ingredientes, mezcla constantemente y cocina hasta que estén dorados pero aún jugosos.',
+      'Prueba, ajusta sal y pimienta, y sirve de inmediato con arroz o pan.'
+    ]
+  },
+  {
+    nombre: 'Bowl cremoso',
+    icono: '🥗',
+    dificultad: 'Medio',
+    descripcion: 'Un bowl suave y nutritivo para disfrutar sin complicaciones.',
+    faltantes: ['yogur natural', 'limón'],
+    pasos: [
+      'Lava y corta los ingredientes frescos; cocina el arroz o la base elegida siguiendo las indicaciones del envase.',
+      'Mezcla yogur, jugo de limón, sal y un chorrito de aceite hasta obtener una salsa cremosa.',
+      'Arma el bowl por capas: primero la base tibia, luego las verduras y la proteína.',
+      'Termina con la salsa y mezcla suavemente antes de servir.'
+    ]
+  },
+  {
+    nombre: 'Tortilla dorada',
+    icono: '🍳',
+    dificultad: 'Difícil',
+    descripcion: 'Una receta sencilla para aprovechar tu despensa.',
+    faltantes: ['perejil', 'pimienta'],
+    pasos: [
+      'Pela y corta los vegetales en cubos pequeños para que se cocinen de forma uniforme.',
+      'Saltéalos en una sartén antiadherente con aceite hasta que estén blandos y ligeramente dorados.',
+      'Bate los huevos con sal y pimienta, viértelos sobre los vegetales y mueve suavemente la sartén.',
+      'Cocina tapado a fuego bajo, da vuelta con ayuda de un plato y termina hasta que ambos lados estén dorados.'
+    ]
   }
-  const recetasBaseRender = base => recetas.map((r,i)=>`<article class="receta-card"><div class="receta-imagen"><span>${r.icono}</span><button class="favorito-corazon ${esFavorito(r)?'activo':''}" onclick="toggleFavorito(${i})">${esFavorito(r)?'♥':'♡'}</button></div><div class="receta-cuerpo"><h3>${r.nombre} con ${base}</h3><p>${r.descripcion}</p><div class="receta-datos"><span>◷ ${tiempo}</span><span>🍽 ${porciones} porciones</span></div>${esFavorito(r)?'<p class="favorito-mensaje">♥ Agregado a favoritos</p>':''}${pedirFaltantes.checked?`<div class="faltantes-lista"><b>Faltan:</b> ${r.faltantes.join(', ')}<button class="link-compras" onclick="agregarCompras(${i})">Agregar a compras</button></div>`:''}<button class="boton-ver" onclick="abrirReceta(${i})">Ver receta completa</button></div></article>`);
-  generarRecetas.onclick=()=>generar(true);
-  window.toggleFavorito=i=>{let lista=favoritos(),p=lista.findIndex(x=>x.nombre===recetas[i].nombre);if(p>=0)lista.splice(p,1);else lista.push({...recetas[i],tiempo,porciones});guardar('miCocinaFavoritos',lista);generar(false);};
-  window.agregarCompras=i=>{let lista=leer('miCocinaCompras');recetas[i].faltantes.forEach(x=>{if(!lista.includes(x))lista.push(x)});guardar('miCocinaCompras',lista);};
-  window.abrirReceta=i=>{const r=recetas[i],historial=leer('miCocinaHistorialRecetas');historial.unshift({...r,tiempo,porciones});guardar('miCocinaHistorialRecetas',historial.slice(0,30));detalleReceta.innerHTML=`<button class="modal-cerrar" onclick="modalReceta.classList.remove('abierto')">Cerrar</button><h2>${r.icono} ${r.nombre}</h2><p>${r.descripcion}</p><p><b>Tiempo:</b> ${tiempo} · <b>Porciones:</b> ${porciones}</p><h3>Preparación</h3><ol>${r.pasos.map(x=>`<li>${x}</li>`).join('')}</ol>`;modalReceta.classList.add('abierto');};
-  generar(false);
-}
+];
 
-// Favoritos.
-if (document.getElementById('listaFavoritos')) { const pintarFavoritos=()=>{const lista=favoritos();listaFavoritos.innerHTML=lista.length?lista.map((r,i)=>`<article class="receta-card"><div class="receta-imagen"><span>${r.icono}</span><button class="favorito-corazon activo" onclick="quitarFavorito(${i})">♥</button></div><div class="receta-cuerpo"><h3>${r.nombre}</h3><p>${r.descripcion}</p><div class="receta-datos"><span>◷ ${r.tiempo}</span><span>🍽 ${r.porciones} porciones</span></div><button class="boton-ver" onclick="quitarFavorito(${i})">Quitar de favoritos</button></div></article>`).join(''):'<p class="sin-resultados">Aún no tienes recetas favoritas.</p>';};window.quitarFavorito=i=>{let l=favoritos();l.splice(i,1);guardar('miCocinaFavoritos',l);pintarFavoritos();};pintarFavoritos(); }
+const iniciarLobby = () => {
+  const buscarIngrediente = obtenerElemento('buscarIngrediente');
+  if (!buscarIngrediente) return;
 
-// Historial.
-if (document.getElementById('historialBusquedas')) { const pintarHistorial=()=>{const b=leer('miCocinaHistorialBusquedas'),r=leer('miCocinaHistorialRecetas');historialBusquedas.innerHTML=b.length?b.map(x=>`<div class="historial-item"><b>${x.ingredientes.join(', ')}</b><small>${x.fecha}</small></div>`).join(''):'<p class="sin-resultados">Aún no realizas búsquedas.</p>';historialRecetas.innerHTML=r.length?r.map(x=>`<article class="receta-card"><div class="receta-imagen">${x.icono}</div><div class="receta-cuerpo"><h3>${x.nombre}</h3><p>${x.descripcion}</p><div class="receta-datos">◷ ${x.tiempo} · 🍽 ${x.porciones} porciones</div></div></article>`).join(''):'<p class="sin-resultados">Abre una receta para verla aquí.</p>';};limpiarHistorial.onclick=()=>{guardar('miCocinaHistorialBusquedas',[]);guardar('miCocinaHistorialRecetas',[]);pintarHistorial();};pintarHistorial(); }
+  const sugerencias = obtenerElemento('sugerencias');
+  const ingredientesElegidos = obtenerElemento('ingredientesElegidos');
+  const buscarEvitar = obtenerElemento('buscarEvitar');
+  const sugerenciasEvitar = obtenerElemento('sugerenciasEvitar');
+  const ingredientesEvitados = obtenerElemento('ingredientesEvitados');
+  const modalFiltros = obtenerElemento('modalFiltros');
+  const modalReceta = obtenerElemento('modalReceta');
+  const detalleReceta = obtenerElemento('detalleReceta');
+  const pedirFaltantes = obtenerElemento('pedirFaltantes');
+  const usarDespensa = obtenerElemento('usarDespensa');
+  let elegidos = [];
+  let evitados = [];
+  let tiempo = '30 min';
+  let porciones = '2';
+  let dificultad = 'Todas';
 
-// Despensa y compras.
-if (document.getElementById('nuevoIngrediente')) { const pintarDespensa=()=>{const despensa=leer('miCocinaDespensa'),compras=leer('miCocinaCompras');listaDespensa.innerHTML=despensa.map((x,i)=>`<span class="chip-ingrediente">${x}<button onclick="quitarDespensa(${i})">×</button></span>`).join('')||'<p class="sin-resultados">Aún no agregas ingredientes.</p>';listaCompras.innerHTML=compras.map((x,i)=>`<label class="historial-item"><input type="checkbox" onchange="marcarCompra(${i},this.checked)"> <b>${x}</b><button onclick="quitarCompra(${i})">×</button></label>`).join('')||'<p class="sin-resultados">Tu lista de compras está vacía.</p>';};agregarIngredienteDespensa.onclick=()=>{let x=nuevoIngrediente.value.trim().toLowerCase(),l=leer('miCocinaDespensa');if(x&&!l.includes(x))l.push(x);guardar('miCocinaDespensa',l);nuevoIngrediente.value='';pintarDespensa();};window.quitarDespensa=i=>{let l=leer('miCocinaDespensa');l.splice(i,1);guardar('miCocinaDespensa',l);pintarDespensa();};window.quitarCompra=i=>{let l=leer('miCocinaCompras');l.splice(i,1);guardar('miCocinaCompras',l);pintarDespensa();};window.marcarCompra=(i,hecho)=>{if(hecho)quitarCompra(i)};limpiarCompras.onclick=()=>{guardar('miCocinaCompras',[]);pintarDespensa();};completarCompras.onclick=()=>{const d=leer('miCocinaDespensa'),c=leer('miCocinaCompras');guardar('miCocinaDespensa',[...new Set([...d,...c])]);guardar('miCocinaCompras',[]);pintarDespensa();};pintarDespensa(); }
-
-// Sugerencias de ingredientes mientras se escribe en la despensa.
-if (document.getElementById('sugerenciasDespensa')) {
-  const sugeridosDespensa = ['tomate','pollo','arroz','papa','cebolla','zanahoria','ajo','huevo','queso','pasta','atún','palta','espinaca','leche','champiñón','lentejas'];
-  nuevoIngrediente.oninput = () => {
-    const texto = nuevoIngrediente.value.trim().toLowerCase();
-    const yaTengo = leer('miCocinaDespensa');
-    const opciones = sugeridosDespensa.filter(x => x.includes(texto) && !yaTengo.includes(x));
-    sugerenciasDespensa.innerHTML = texto ? opciones.map(x => `<button class="sugerencia" onclick="elegirSugerenciaDespensa('${x}')">+ ${x}</button>`).join('') : '';
+  const pintarIngredientes = () => {
+    ingredientesElegidos.innerHTML = elegidos.map((ingrediente, indice) => `
+      <span class="chip-ingrediente">
+        ${ingrediente}
+        <button onclick="quitarIngrediente(${indice})">×</button>
+      </span>
+    `).join('');
   };
-  window.elegirSugerenciaDespensa = ingrediente => { nuevoIngrediente.value = ingrediente; sugerenciasDespensa.innerHTML = ''; agregarIngredienteDespensa.click(); };
-}
 
-// Historial: las tarjetas guardadas pueden abrirse nuevamente con sus pasos.
-if (document.getElementById('historialRecetas')) {
-  const renderHistorialInteractivo = () => {
+  const pintarEvitados = () => {
+    ingredientesEvitados.innerHTML = evitados.map((ingrediente, indice) => `
+      <span class="chip-ingrediente">
+        ${ingrediente}
+        <button onclick="quitarEvitado(${indice})">×</button>
+      </span>
+    `).join('');
+  };
+
+  const sugerirIngredientes = (texto, destino, funcion) => {
+    const coincidencias = ingredientesDisponibles.filter(ingrediente => (
+      ingrediente.includes(texto.toLowerCase()) &&
+      !elegidos.includes(ingrediente) &&
+      !evitados.includes(ingrediente)
+    ));
+
+    destino.innerHTML = texto
+      ? coincidencias.map(ingrediente => (
+        `<button class="sugerencia" onclick="${funcion}('${ingrediente}')">+ ${ingrediente}</button>`
+      )).join('')
+      : '';
+  };
+
+  const pintarOpciones = (id, valores, actual, cambiar) => {
+    const contenedor = obtenerElemento(id);
+    contenedor.innerHTML = valores.map(valor => `
+      <button class="filtro-opcion ${valor === actual ? 'seleccionada' : ''}" data-v="${valor}">
+        ${valor}
+      </button>
+    `).join('');
+
+    [...contenedor.children].forEach(boton => {
+      boton.onclick = () => {
+        [...contenedor.children].forEach(opcion => opcion.classList.remove('seleccionada'));
+        boton.classList.add('seleccionada');
+        cambiar(boton.dataset.v);
+      };
+    });
+  };
+
+  const ingredientesParaReceta = () => usarDespensa.checked
+    ? [...new Set([...elegidos, ...leer('miCocinaDespensa')])]
+    : elegidos;
+
+  const esFavorita = receta => favoritos().some(item => item.nombre === receta.nombre);
+  const mensajeSinRecetas = '<p class="sin-resultados">No Hay Recetas generadas</p>';
+
+  const comentariosDe = receta => leer('miCocinaComentarios', {})[receta.nombre] || [];
+
+  const pintarComentarios = receta => comentariosDe(receta).map((comentario, indice) => `
+    <article class="comentario-item">
+      <div class="comentario-cabecera">
+        <strong>${comentario.usuario}</strong>
+        <span class="estrellas-mostradas">${'★'.repeat(comentario.estrellas)}${'☆'.repeat(5 - comentario.estrellas)}</span>
+      </div>
+      <p>${comentario.texto}</p>
+      <div class="comentario-acciones">
+        <button type="button" onclick="editarComentario('${receta.nombre}', ${indice})">Editar</button>
+        <button type="button" onclick="borrarComentario('${receta.nombre}', ${indice})">Borrar</button>
+      </div>
+    </article>
+  `).join('') || '<p class="sin-comentarios">Aún no hay comentarios para esta receta.</p>';
+
+  const formularioComentarios = receta => `
+    <section class="comentarios-receta">
+      <h3>Comentarios y valoración</h3>
+      <div class="estrellas-interactivas" aria-label="Calificar receta">
+        ${[1, 2, 3, 4, 5].map(valor => `<button type="button" class="estrella-boton" data-receta="${receta.nombre}" data-valor="${valor}" aria-label="${valor} estrellas">☆</button>`).join('')}
+      </div>
+      <textarea id="nuevoComentario" class="comentario-input" placeholder="Escribe un comentario sobre esta receta" rows="3"></textarea>
+      <button type="button" class="boton-generar" id="guardarComentario">Publicar comentario</button>
+      <div id="listaComentarios">${pintarComentarios(receta)}</div>
+    </section>
+  `;
+
+  const actualizarEstrellas = estrellas => {
+    document.querySelectorAll('.estrella-boton').forEach(boton => {
+      boton.textContent = Number(boton.dataset.valor) <= estrellas ? '★' : '☆';
+      boton.classList.toggle('seleccionada', Number(boton.dataset.valor) <= estrellas);
+    });
+  };
+
+  window.editarComentario = (nombreReceta, indice) => {
+    const comentarios = leer('miCocinaComentarios', {});
+    const comentario = comentarios[nombreReceta]?.[indice];
+    if (!comentario) return;
+
+    const textoNuevo = window.prompt('Edita tu comentario:', comentario.texto);
+    if (textoNuevo === null || !textoNuevo.trim()) return;
+    comentario.texto = textoNuevo.trim();
+    guardar('miCocinaComentarios', comentarios);
+    const lista = document.getElementById('listaComentarios');
+    const receta = recetasDisponibles.find(item => item.nombre === nombreReceta);
+    if (lista && receta) lista.innerHTML = pintarComentarios(receta);
+  };
+
+  window.borrarComentario = (nombreReceta, indice) => {
+    const comentarios = leer('miCocinaComentarios', {});
+    if (!comentarios[nombreReceta]?.[indice]) return;
+    if (!window.confirm('¿Quieres borrar este comentario?')) return;
+    comentarios[nombreReceta].splice(indice, 1);
+    guardar('miCocinaComentarios', comentarios);
+    const lista = document.getElementById('listaComentarios');
+    const receta = recetasDisponibles.find(item => item.nombre === nombreReceta);
+    if (lista && receta) lista.innerHTML = pintarComentarios(receta);
+  };
+
+  const abrirReceta = indice => {
+    const receta = recetasDisponibles[indice];
+    const historial = leer('miCocinaHistorialRecetas');
+    historial.unshift({ ...receta, tiempo, porciones });
+    guardar('miCocinaHistorialRecetas', historial.slice(0, 30));
+    detalleReceta.innerHTML = `
+      <button class="modal-cerrar" onclick="modalReceta.classList.remove('abierto')">Cerrar</button>
+      <h2>${receta.icono} ${receta.nombre}</h2>
+      <p>${receta.descripcion}</p>
+      <p><b>Tiempo:</b> ${tiempo} · <b>Porciones:</b> ${porciones} · <b>Dificultad:</b> ${receta.dificultad}</p>
+      <h3>Preparación</h3>
+      <ol>${receta.pasos.map(paso => `<li>${paso}</li>`).join('')}</ol>
+      ${formularioComentarios(receta)}
+    `;
+    modalReceta.classList.add('abierto');
+
+    let estrellasSeleccionadas = 0;
+    document.querySelectorAll('.estrella-boton').forEach(boton => {
+      boton.onclick = () => {
+        estrellasSeleccionadas = Number(boton.dataset.valor);
+        actualizarEstrellas(estrellasSeleccionadas);
+      };
+    });
+    document.getElementById('guardarComentario').onclick = () => {
+      const texto = document.getElementById('nuevoComentario').value.trim();
+      if (!texto || !estrellasSeleccionadas) {
+        alert('Escribe un comentario y selecciona una calificación.');
+        return;
+      }
+      const comentarios = leer('miCocinaComentarios', {});
+      comentarios[receta.nombre] = comentarios[receta.nombre] || [];
+      comentarios[receta.nombre].push({ usuario: 'Usuario', texto, estrellas: estrellasSeleccionadas });
+      guardar('miCocinaComentarios', comentarios);
+      document.getElementById('listaComentarios').innerHTML = pintarComentarios(receta);
+      document.getElementById('nuevoComentario').value = '';
+      estrellasSeleccionadas = 0;
+      actualizarEstrellas(0);
+    };
+  };
+
+  const renderizarRecetas = base => recetasDisponibles
+    .map((receta, indiceOriginal) => ({ receta, indiceOriginal }))
+    .filter(({ receta }) => dificultad === 'Todas' || receta.dificultad === dificultad)
+    .map(({ receta, indiceOriginal }) => `
+    <article class="receta-card">
+      <div class="receta-imagen">
+        <span>${receta.icono}</span>
+        <button class="favorito-corazon ${esFavorita(receta) ? 'activo' : ''}" onclick="toggleFavorito(${indiceOriginal})">
+          ${esFavorita(receta) ? '♥' : '♡'}
+        </button>
+      </div>
+      <div class="receta-cuerpo">
+        <h3>${receta.nombre} con ${base}</h3>
+        <p>${receta.descripcion}</p>
+        <div class="receta-datos">
+          <span>◷ ${tiempo}</span>
+          <span>🍽 ${porciones} porciones</span>
+          <span>⚑ ${receta.dificultad}</span>
+        </div>
+        ${esFavorita(receta) ? '<p class="favorito-mensaje">♥ Agregado a favoritos</p>' : ''}
+        ${pedirFaltantes.checked ? `
+          <div class="faltantes-lista">
+            <b>Faltan:</b> ${receta.faltantes.join(', ')}
+            <button class="link-compras" onclick="agregarCompras(${indiceOriginal})">Agregar a compras</button>
+          </div>
+        ` : ''}
+        <button class="boton-ver" onclick="abrirReceta(${indiceOriginal})">Ver receta completa</button>
+      </div>
+    </article>
+  `);
+
+  const generarRecetas = (registrar = true) => {
+    const ingredientes = ingredientesParaReceta();
+    const base = ingredientes.length ? ingredientes.join(', ') : 'los ingredientes de tu cocina';
+
+    guardar('miCocinaRecetasGeneradas', {
+      base,
+      tiempo,
+      porciones,
+      dificultad,
+      pedirFaltantes: pedirFaltantes.checked
+    });
+
+    if (registrar) {
+      const historial = leer('miCocinaHistorialBusquedas');
+      historial.unshift({
+        ingredientes: ingredientes.length ? ingredientes : ['Sin ingredientes seleccionados'],
+        fecha: new Date().toLocaleString('es-CL')
+      });
+      guardar('miCocinaHistorialBusquedas', historial.slice(0, 30));
+    }
+
+    obtenerElemento('recetas').innerHTML = renderizarRecetas(base).join('');
+  };
+
+  const cargarRecetasGeneradas = () => {
+    const resultadosGuardados = leer('miCocinaRecetasGeneradas', null);
+    if (!resultadosGuardados) {
+      obtenerElemento('recetas').innerHTML = mensajeSinRecetas;
+      return;
+    }
+
+    tiempo = resultadosGuardados.tiempo || tiempo;
+    porciones = resultadosGuardados.porciones || porciones;
+    dificultad = resultadosGuardados.dificultad || dificultad;
+    pedirFaltantes.checked = Boolean(resultadosGuardados.pedirFaltantes);
+    obtenerElemento('recetas').innerHTML = renderizarRecetas(resultadosGuardados.base).join('') || mensajeSinRecetas;
+  };
+
+  buscarIngrediente.oninput = evento => sugerirIngredientes(evento.target.value, sugerencias, 'agregarIngrediente');
+  buscarEvitar.oninput = evento => sugerirIngredientes(evento.target.value, sugerenciasEvitar, 'agregarEvitado');
+  obtenerElemento('abrirFiltros').onclick = () => modalFiltros.classList.add('abierto');
+  obtenerElemento('generarRecetas').onclick = () => generarRecetas(true);
+
+  window.agregarIngrediente = ingrediente => {
+    if (!elegidos.includes(ingrediente)) elegidos.push(ingrediente);
+    buscarIngrediente.value = '';
+    sugerencias.innerHTML = '';
+    pintarIngredientes();
+  };
+
+  window.quitarIngrediente = indice => {
+    elegidos.splice(indice, 1);
+    pintarIngredientes();
+  };
+
+  window.agregarEvitado = ingrediente => {
+    if (!evitados.includes(ingrediente)) evitados.push(ingrediente);
+    buscarEvitar.value = '';
+    sugerenciasEvitar.innerHTML = '';
+    pintarEvitados();
+  };
+
+  window.quitarEvitado = indice => {
+    evitados.splice(indice, 1);
+    pintarEvitados();
+  };
+
+  window.toggleFavorito = indice => {
+    const lista = favoritos();
+    const posicion = lista.findIndex(item => item.nombre === recetasDisponibles[indice].nombre);
+    if (posicion >= 0) lista.splice(posicion, 1);
+    else lista.push({ ...recetasDisponibles[indice], tiempo, porciones });
+    guardar('miCocinaFavoritos', lista);
+    const resultadosGuardados = leer('miCocinaRecetasGeneradas', null);
+    if (resultadosGuardados) {
+      obtenerElemento('recetas').innerHTML = renderizarRecetas(resultadosGuardados.base).join('') || mensajeSinRecetas;
+    }
+  };
+
+  window.agregarCompras = indice => {
+    const lista = leer('miCocinaCompras');
+    recetasDisponibles[indice].faltantes.forEach(ingrediente => {
+      if (!lista.includes(ingrediente)) lista.push(ingrediente);
+    });
+    guardar('miCocinaCompras', lista);
+  };
+
+  window.abrirReceta = abrirReceta;
+  pintarOpciones('tiempos', ['10 min', '20 min', '30 min', '50 min', '1 hora', 'Más de 2 horas'], tiempo, valor => { tiempo = valor; });
+  pintarOpciones('porciones', ['2', '4', '6', '8', '10'], porciones, valor => { porciones = valor; });
+  pintarOpciones('dificultad', ['Todas', 'Fácil', 'Medio', 'Difícil'], dificultad, valor => { dificultad = valor; });
+  document.querySelectorAll('[data-cerrar]').forEach(boton => {
+    boton.onclick = () => obtenerElemento(boton.dataset.cerrar).classList.remove('abierto');
+  });
+  cargarRecetasGeneradas();
+};
+
+// ============================================================================
+// PANTALLA DE FAVORITOS
+// Muestra las recetas guardadas y permite quitarlas de la lista.
+// ============================================================================
+
+const iniciarFavoritos = () => {
+  const listaFavoritos = obtenerElemento('listaFavoritos');
+  if (!listaFavoritos) return;
+
+  const pintar = () => {
+    const lista = favoritos();
+    listaFavoritos.innerHTML = lista.length ? lista.map((receta, indice) => `
+      <article class="receta-card">
+        <div class="receta-imagen">
+          <span>${receta.icono}</span>
+          <button class="favorito-corazon activo" onclick="quitarFavorito(${indice})">♥</button>
+        </div>
+        <div class="receta-cuerpo">
+          <h3>${receta.nombre}</h3>
+          <p>${receta.descripcion}</p>
+          <div class="receta-datos">◷ ${receta.tiempo} · 🍽 ${receta.porciones} porciones</div>
+          <button class="boton-ver" onclick="quitarFavorito(${indice})">Quitar de favoritos</button>
+        </div>
+      </article>
+    `).join('') : '<p class="sin-resultados">Aún no tienes recetas favoritas.</p>';
+  };
+
+  window.quitarFavorito = indice => {
+    const lista = favoritos();
+    lista.splice(indice, 1);
+    guardar('miCocinaFavoritos', lista);
+    pintar();
+  };
+
+  pintar();
+};
+
+// ============================================================================
+// PANTALLA DE HISTORIAL
+// Presenta búsquedas y recetas vistas, con opción de limpiar todo.
+// ============================================================================
+
+const iniciarHistorial = () => {
+  const historialBusquedas = obtenerElemento('historialBusquedas');
+  const historialRecetas = obtenerElemento('historialRecetas');
+  if (!historialBusquedas || !historialRecetas) return;
+
+  const modal = obtenerElemento('modalHistorial');
+  const detalle = obtenerElemento('detalleHistorial');
+
+  const pintar = () => {
     const busquedas = leer('miCocinaHistorialBusquedas');
-    const recetasVistas = leer('miCocinaHistorialRecetas');
-    historialBusquedas.innerHTML = busquedas.length ? busquedas.map(x => `<div class="historial-item"><b>${x.ingredientes.join(', ')}</b><small>${x.fecha}</small></div>`).join('') : '<p class="sin-resultados">Aún no realizas búsquedas.</p>';
-    historialRecetas.innerHTML = recetasVistas.length ? recetasVistas.map((r,i) => `<article class="receta-card tarjeta-clickable" onclick="abrirHistorialReceta(${i})"><div class="receta-imagen">${r.icono}</div><div class="receta-cuerpo"><h3>${r.nombre}</h3><p>${r.descripcion}</p><div class="receta-datos">◷ ${r.tiempo} · 🍽 ${r.porciones} porciones</div><button class="boton-ver" type="button">Abrir receta</button></div></article>`).join('') : '<p class="sin-resultados">Abre una receta para verla aquí.</p>';
+    const recetas = leer('miCocinaHistorialRecetas');
+    historialBusquedas.innerHTML = busquedas.length
+      ? busquedas.map(item => `<div class="historial-item"><b>${item.ingredientes.join(', ')}</b><small>${item.fecha}</small></div>`).join('')
+      : '<p class="sin-resultados">Aún no realizas búsquedas.</p>';
+    historialRecetas.innerHTML = recetas.length
+      ? recetas.map((receta, indice) => `
+        <article class="receta-card tarjeta-clickable" onclick="abrirHistorialReceta(${indice})">
+          <div class="receta-imagen">${receta.icono}</div>
+          <div class="receta-cuerpo">
+            <h3>${receta.nombre}</h3>
+            <p>${receta.descripcion}</p>
+            <div class="receta-datos">◷ ${receta.tiempo} · 🍽 ${receta.porciones} porciones</div>
+            <button class="boton-ver" type="button">Abrir receta</button>
+          </div>
+        </article>
+      `).join('')
+      : '<p class="sin-resultados">Abre una receta para verla aquí.</p>';
   };
+
   window.abrirHistorialReceta = indice => {
     const receta = leer('miCocinaHistorialRecetas')[indice];
-    detalleHistorial.innerHTML = `<button class="modal-cerrar" onclick="modalHistorial.classList.remove('abierto')">Cerrar</button><h2>${receta.icono} ${receta.nombre}</h2><p>${receta.descripcion}</p><p><b>Tiempo:</b> ${receta.tiempo} · <b>Porciones:</b> ${receta.porciones}</p><h3>Preparación</h3><ol>${receta.pasos.map(paso => `<li>${paso}</li>`).join('')}</ol>`;
-    modalHistorial.classList.add('abierto');
+    detalle.innerHTML = `
+      <button class="modal-cerrar" onclick="modalHistorial.classList.remove('abierto')">Cerrar</button>
+      <h2>${receta.icono} ${receta.nombre}</h2>
+      <p>${receta.descripcion}</p>
+      <p><b>Tiempo:</b> ${receta.tiempo} · <b>Porciones:</b> ${receta.porciones}</p>
+      <h3>Preparación</h3>
+      <ol>${receta.pasos.map(paso => `<li>${paso}</li>`).join('')}</ol>
+    `;
+    modal.classList.add('abierto');
   };
-  limpiarHistorial.onclick = () => { guardar('miCocinaHistorialBusquedas', []); guardar('miCocinaHistorialRecetas', []); renderHistorialInteractivo(); };
-  renderHistorialInteractivo();
-}
+
+  obtenerElemento('limpiarHistorial').onclick = () => {
+    guardar('miCocinaHistorialBusquedas', []);
+    guardar('miCocinaHistorialRecetas', []);
+    pintar();
+  };
+
+  pintar();
+};
+
+// ============================================================================
+// PANTALLA DE DESPENSA Y LISTA DE COMPRAS
+// Administra ingredientes disponibles, compras y sugerencias.
+// ============================================================================
+
+const iniciarDespensa = () => {
+  const nuevoIngrediente = obtenerElemento('nuevoIngrediente');
+  if (!nuevoIngrediente) return;
+
+  const listaDespensa = obtenerElemento('listaDespensa');
+  const listaCompras = obtenerElemento('listaCompras');
+  const sugerencias = obtenerElemento('sugerenciasDespensa');
+  const pintar = () => {
+    const despensa = leer('miCocinaDespensa');
+    const compras = leer('miCocinaCompras');
+    listaDespensa.innerHTML = despensa.map((ingrediente, indice) => `
+      <span class="chip-ingrediente">${ingrediente}<button onclick="quitarDespensa(${indice})">×</button></span>
+    `).join('') || '<p class="sin-resultados">Aún no agregas ingredientes.</p>';
+    listaCompras.innerHTML = compras.map((ingrediente, indice) => `
+      <label class="historial-item">
+        <input type="checkbox" onchange="marcarCompra(${indice}, this.checked)">
+        <b>${ingrediente}</b>
+        <button onclick="quitarCompra(${indice})">×</button>
+      </label>
+    `).join('') || '<p class="sin-resultados">Tu lista de compras está vacía.</p>';
+  };
+
+  obtenerElemento('agregarIngredienteDespensa').onclick = () => {
+    const ingrediente = nuevoIngrediente.value.trim().toLowerCase();
+    const despensa = leer('miCocinaDespensa');
+    if (ingrediente && !despensa.includes(ingrediente)) despensa.push(ingrediente);
+    guardar('miCocinaDespensa', despensa);
+    nuevoIngrediente.value = '';
+    sugerencias.innerHTML = '';
+    pintar();
+  };
+
+  obtenerElemento('limpiarDespensa').onclick = () => {
+    guardar('miCocinaDespensa', []);
+    pintar();
+  };
+
+  window.quitarDespensa = indice => {
+    const despensa = leer('miCocinaDespensa');
+    despensa.splice(indice, 1);
+    guardar('miCocinaDespensa', despensa);
+    pintar();
+  };
+
+  window.quitarCompra = indice => {
+    const compras = leer('miCocinaCompras');
+    compras.splice(indice, 1);
+    guardar('miCocinaCompras', compras);
+    pintar();
+  };
+
+  window.marcarCompra = (indice, marcada) => {
+    if (marcada) window.quitarCompra(indice);
+  };
+
+  obtenerElemento('limpiarCompras').onclick = () => {
+    guardar('miCocinaCompras', []);
+    pintar();
+  };
+
+  obtenerElemento('completarCompras').onclick = () => {
+    const despensa = leer('miCocinaDespensa');
+    const compras = leer('miCocinaCompras');
+    guardar('miCocinaDespensa', [...new Set([...despensa, ...compras])]);
+    guardar('miCocinaCompras', []);
+    pintar();
+  };
+
+  nuevoIngrediente.oninput = () => {
+    const texto = nuevoIngrediente.value.trim().toLowerCase();
+    const despensa = leer('miCocinaDespensa');
+    const coincidencias = ingredientesDisponibles.filter(ingrediente => (
+      ingrediente.includes(texto) && !despensa.includes(ingrediente)
+    ));
+    sugerencias.innerHTML = texto
+      ? coincidencias.map(ingrediente => `<button class="sugerencia" onclick="elegirSugerenciaDespensa('${ingrediente}')">+ ${ingrediente}</button>`).join('')
+      : '';
+  };
+
+  window.elegirSugerenciaDespensa = ingrediente => {
+    nuevoIngrediente.value = ingrediente;
+    sugerencias.innerHTML = '';
+    obtenerElemento('agregarIngredienteDespensa').click();
+  };
+
+  pintar();
+};
+
+// Cada inicializador detecta si la pantalla actual contiene sus elementos.
+// Así un único archivo JavaScript puede compartirse entre todas las vistas.
+iniciarSesion();
+iniciarSidebar();
+registroUsuario();
+iniciarPerfil();
+iniciarLobby();
+iniciarFavoritos();
+iniciarHistorial();
+iniciarDespensa();

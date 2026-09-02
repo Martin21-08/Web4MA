@@ -8,16 +8,7 @@
 </head>
 <body>
   <div class="inicio-app">
-    <aside class="inicio-sidebar">
-      <p class="inicio-marca">Mi <span>Cocina </span> en <span> CookIQ </span></p>
-      <nav class="inicio-menu">
-        <a href="screen-inicion.html">🍳 Cocinar</a>
-        <a href="despensa.html">🧺 Mi despensa</a>
-        <a href="favoritos.html">♥ Favoritos</a>
-        <a href="historial.html">◷ Historial</a>
-        <a href="Perfil.html" class="activa">👤 Perfil</a>
-      </nav>
-    </aside>
+    <%- include('Partials/Sidebar') %> 
 
     <main class="inicio-contenido perfil-contenido">
         <header class="inicio-encabezado">
@@ -44,14 +35,14 @@
           <p class="perfil-ayuda">Selecciona las opciones que debemos considerar al sugerirte recetas.</p>
 
           <div class="perfil-opciones">
-            <label><input type="checkbox"> Gluten</label><label><input type="checkbox"> Lactosa</label><label><input type="checkbox"> Huevo</label><label><input type="checkbox"> Frutos secos</label><label><input type="checkbox"> Mariscos</label><label><input type="checkbox"> Soja</label><label><input type="checkbox"> Maní</label><label><input type="checkbox"> Vegetariano</label>
+            <label><input type="checkbox" name="alergias" value="Gluten"> Gluten</label><label><input type="checkbox" name="alergias" value="Lactosa"> Lactosa</label><label><input type="checkbox" name="alergias" value="Huevo"> Huevo</label><label><input type="checkbox" name="alergias" value="Frutos secos"> Frutos secos</label><label><input type="checkbox" name="alergias" value="Mariscos"> Mariscos</label><label><input type="checkbox" name="alergias" value="Soja"> Soja</label><label><input type="checkbox" name="alergias" value="Maní"> Maní</label><label><input type="checkbox" name="alergias" value="Vegetariano"> Vegetariano</label>
           </div>
         </section>
 
         <div class="perfil-acciones">
             <button type="submit" class="boton-generar">Guardar cambios</button>
 
-            <button type="button" class="boton-cerrar-sesion" onclick="window.location.href='login.html'">Cerrar sesión</button>
+            <button type="button" class="boton-cerrar-sesion" id="cerrarSesion">Cerrar sesión</button>
         </div>
       </form>
     </main>

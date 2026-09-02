@@ -8,16 +8,7 @@
 </head>
 <body>
   <div class="inicio-app">
-    <aside class="inicio-sidebar">
-      <p class="inicio-marca">Mi <span>Cocina </span> en <span> CookIQ </span></p>
-      <nav class="inicio-menu">
-        <a href="screen-inicion.html">🍳 Cocinar</a>
-        <a href="despensa.html">🧺 Mi despensa</a>
-        <a href="favoritos.html" class="activa">♥ Favoritos</a>
-        <a href="historial.html">◷ Historial</a>
-        <a href="Perfil.html">👤 Perfil</a>
-      </nav>
-    </aside>
+     <%- include('Partials/Sidebar') %>
     <main class="inicio-contenido">
       <header class="inicio-encabezado"><h1>Mis favoritos</h1><p>Guarda aquí las recetas que más te gusten.</p></header>
       <section class="recetas-grid" id="listaFavoritos"></section>

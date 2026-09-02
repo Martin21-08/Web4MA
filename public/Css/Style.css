@@ -115,7 +115,7 @@ body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; b
 .inicio-menu { display: grid; gap: 8px; }
 .inicio-menu a { padding: 12px 14px; border-radius: 12px; color: #f8e9e1; font-weight: 700; text-decoration: none; }
 .inicio-menu a:hover, .inicio-menu a.activa { background: rgba(255, 255, 255, .17); color: white; }
-.inicio-contenido { width: min(1120px, calc(100% - 235px)); margin-left: 235px; padding: 45px clamp(24px, 5vw, 70px); }
+.inicio-contenido { flex: 1; min-width: 0; width: calc(100% - 235px); margin-left: 235px; padding: 45px clamp(24px, 5vw, 70px); }
 .inicio-encabezado h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); }
 .inicio-encabezado p { color: #806e60; margin: 8px 0 28px; }
 
@@ -166,10 +166,12 @@ body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; b
 .historial-item button { border: 0; background: transparent; color: #ca4c42; font-size: 18px; cursor: pointer; }
 .agregar-linea { display: flex; gap: 10px; }
 .agregar-linea input { flex: 1; min-width: 0; padding: 12px; border: 1px solid #eadbd0; border-radius: 11px; font: inherit; outline: none; }
+.acciones-despensa { display: grid; gap: 10px; min-width: 190px; }
+.acciones-despensa .boton-generar { width: 100%; }
 .link-compras { display: block; margin: 8px 0 0; border: 0; padding: 0; background: transparent; color: #bd6d23; font: 800 13px 'Nunito',sans-serif; text-decoration: underline; cursor: pointer; }
 .tarjeta-clickable { cursor: pointer; transition: transform .2s, box-shadow .2s; }
 .tarjeta-clickable:hover { transform: translateY(-3px); box-shadow: 0 12px 22px rgba(100, 62, 44, .14); }
-@media (max-width: 570px) { .agregar-linea { flex-direction: column; } .agregar-linea .boton-generar { width: 100%; } }
+@media (max-width: 570px) { .agregar-linea { flex-direction: column; } .acciones-despensa { width: 100%; } }
 .receta-cuerpo { padding: 18px; }
 .receta-cuerpo h3 { margin: 0 0 8px; font-size: 20px; }
 .receta-cuerpo p { margin: 0 0 12px; color: #765f51; font-size: 14px; line-height: 1.45; }
@@ -184,6 +186,20 @@ body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; b
 .modal-panel h3 { margin: 22px 0 8px; }
 .modal-panel p, .modal-panel li { color: #715c4f; line-height: 1.55; }
 .modal-cerrar { float: right; border: 0; background: #ffe5dc; border-radius: 9px; padding: 7px 10px; color: #a44237; font-weight: 800; cursor: pointer; }
+.comentarios-receta { margin-top: 26px; padding-top: 20px; border-top: 1px solid #efdcd1; }
+.comentarios-receta h3 { margin: 0 0 12px; }
+.estrellas-interactivas { display: flex; gap: 4px; margin-bottom: 12px; }
+.estrella-boton { padding: 0; border: 0; background: transparent; color: #d8a326; font-size: 30px; line-height: 1; cursor: pointer; }
+.estrella-boton:hover, .estrella-boton.seleccionada { color: #e39a00; }
+.comentario-input { width: 100%; min-height: 80px; margin-bottom: 10px; padding: 11px; border: 1px solid #eadbd0; border-radius: 10px; resize: vertical; font: inherit; }
+.comentario-input:focus { border-color: var(--coral); outline: none; box-shadow: 0 0 0 3px rgba(255, 107, 95, .14); }
+.comentario-item { margin-top: 12px; padding: 13px; border-radius: 11px; background: #fff7f2; }
+.comentario-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.estrellas-mostradas { color: #d8a326; letter-spacing: 1px; }
+.comentario-item p { margin: 8px 0; }
+.comentario-acciones { display: flex; gap: 12px; }
+.comentario-acciones button { border: 0; padding: 0; background: transparent; color: #bd6d23; font: 800 13px 'Nunito', sans-serif; cursor: pointer; }
+.sin-comentarios { color: #806e60; font-size: 14px; }
 
 
 /* ------------------------------------------------------------------------
@@ -206,7 +222,7 @@ body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; b
    PÁGINA DE PERFIL: datos del usuario, alergias e intolerancias
    ======================================================================== */
 
-.perfil-contenido { max-width: 1000px; }
+.perfil-contenido { max-width: none; }
 .perfil-formulario { display: grid; gap: 20px; }
 .perfil-seccion { padding: 25px; border: 1px solid #efdcd1; border-radius: 20px; background: rgba(255, 255, 255, .92); box-shadow: 0 10px 22px rgba(118, 76, 57, .07); }
 .perfil-seccion h2 { margin: 0 0 18px; font-size: 21px; }

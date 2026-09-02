@@ -8,15 +8,7 @@
     </head>
 <body>
     <div class="inicio-app">
-        <aside class="inicio-sidebar">
-            <p class="inicio-marca">Mi <span>Cocina </span> en <span> CookIQ </span></p>
-            <nav class="inicio-menu">
-                <a href="screen-inicion.html">🍳 Cocinar</a>
-                <a href="despensa.html" class="activa">🧺 Mi despensa</a>
-                <a href="favoritos.html">♥ Favoritos</a>
-                <a href="historial.html">◷ Historial</a>
-                <a href="Perfil.html">👤 Perfil</a></nav>
-            </aside>
+         <%- include('Partials/Sidebar') %>
 <main class="inicio-contenido">
     <header class="inicio-encabezado">
         <h1>Mi despensa</h1>
@@ -26,7 +18,10 @@
         <h2>Ingredientes disponibles</h2>
         <div class="agregar-linea">
             <input id="nuevoIngrediente" placeholder="Ej: arroz, tomate, pollo" autocomplete="off">
-            <button class="boton-generar" id="agregarIngredienteDespensa">Agregar ingrediente</button>
+            <div class="acciones-despensa">
+                <button class="boton-generar" id="agregarIngredienteDespensa">Agregar ingrediente</button>
+                <button class="boton-generar" id="limpiarDespensa" type="button">Limpiar despensa</button>
+            </div>
         </div>
         
         <div class="sugerencias" id="sugerenciasDespensa"></div>
