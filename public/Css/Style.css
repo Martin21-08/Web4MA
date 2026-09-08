@@ -211,7 +211,6 @@ body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; b
 .filtros-opciones { display: flex; flex-wrap: wrap; gap: 8px; }
 .filtro-opcion { padding: 8px 11px; border: 1px solid #ead8cb; border-radius: 10px; background: white; color: #705b4d; font: 700 13px 'Nunito', sans-serif; cursor: pointer; }
 .filtro-opcion.seleccionada { border-color: var(--coral); background: #ffe5dd; color: #b7493f; }
-.evitar-buscar { width: 100%; padding: 10px; border: 1px solid #ead8cb; border-radius: 10px; outline: none; font: inherit; }
 .acciones-filtro { display: flex; justify-content: end; gap: 10px; margin-top: 24px; }
 
 @media (max-width: 850px) { .inicio-sidebar { width: 76px; padding: 24px 10px; } .inicio-marca { margin-left: 0; font-size: 0; text-align: center; } .inicio-marca::after { content: '🍳'; font-size: 25px; } .inicio-menu a { padding: 13px; font-size: 0; text-align: center; } .inicio-menu a::first-letter { font-size: 19px; } .inicio-contenido { width: calc(100% - 76px); margin-left: 76px; } .recetas-grid { grid-template-columns: 1fr 1fr; } }
@@ -231,6 +230,7 @@ body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; b
 .perfil-campos input { width: 100%; padding: 12px; border: 1px solid #eadbd0; border-radius: 11px; outline: none; color: var(--text); font: inherit; }
 .perfil-campos input:focus { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(255, 107, 95, .14); }
 .perfil-ayuda { margin: -8px 0 16px; color: #806e60; font-size: 14px; }
+.perfil-subseccion { margin: 18px 0 10px; color: #5e4b40; font-size: 16px; }
 .perfil-opciones { display: flex; flex-wrap: wrap; gap: 10px; }
 .perfil-opciones label { padding: 9px 12px; border: 1px solid #ecd8cb; border-radius: 999px; background: #fff8f4; color: #705b4d; font-size: 14px; font-weight: 700; cursor: pointer; }
 .perfil-opciones input { margin-right: 5px; accent-color: var(--coral); }

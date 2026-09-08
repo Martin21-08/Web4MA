@@ -143,12 +143,16 @@ const iniciarPerfil = () => {
   };
   const datos = obtenerPerfilActivo() || {};
   const alergias = datos.alergias || [];
+  const intolerancias = datos.intolerancias || alergias.filter(opcion => ['Gluten', 'Lactosa'].includes(opcion));
 
   Object.entries(campos).forEach(([clave, id]) => {
     obtenerElemento(id).value = datos[clave] || '';
   });
   document.querySelectorAll('#formPerfil input[name="alergias"]').forEach(casilla => {
     casilla.checked = alergias.includes(casilla.value);
+  });
+  document.querySelectorAll('#formPerfil input[name="intolerancias"]').forEach(casilla => {
+    casilla.checked = intolerancias.includes(casilla.value);
   });
 
   const guardarCambios = () => {
@@ -161,6 +165,8 @@ const iniciarPerfil = () => {
         ])
       ),
       alergias: [...document.querySelectorAll('#formPerfil input[name="alergias"]:checked')]
+        .map(casilla => casilla.value),
+      intolerancias: [...document.querySelectorAll('#formPerfil input[name="intolerancias"]:checked')]
         .map(casilla => casilla.value)
     };
     guardarPerfilActivo(perfilActualizado);
@@ -234,16 +240,12 @@ const iniciarLobby = () => {
 
   const sugerencias = obtenerElemento('sugerencias');
   const ingredientesElegidos = obtenerElemento('ingredientesElegidos');
-  const buscarEvitar = obtenerElemento('buscarEvitar');
-  const sugerenciasEvitar = obtenerElemento('sugerenciasEvitar');
-  const ingredientesEvitados = obtenerElemento('ingredientesEvitados');
   const modalFiltros = obtenerElemento('modalFiltros');
   const modalReceta = obtenerElemento('modalReceta');
   const detalleReceta = obtenerElemento('detalleReceta');
   const pedirFaltantes = obtenerElemento('pedirFaltantes');
   const usarDespensa = obtenerElemento('usarDespensa');
   let elegidos = [];
-  let evitados = [];
   let tiempo = '30 min';
   let porciones = '2';
   let dificultad = 'Todas';
@@ -257,20 +259,10 @@ const iniciarLobby = () => {
     `).join('');
   };
 
-  const pintarEvitados = () => {
-    ingredientesEvitados.innerHTML = evitados.map((ingrediente, indice) => `
-      <span class="chip-ingrediente">
-        ${ingrediente}
-        <button onclick="quitarEvitado(${indice})">×</button>
-      </span>
-    `).join('');
-  };
-
   const sugerirIngredientes = (texto, destino, funcion) => {
     const coincidencias = ingredientesDisponibles.filter(ingrediente => (
       ingrediente.includes(texto.toLowerCase()) &&
-      !elegidos.includes(ingrediente) &&
-      !evitados.includes(ingrediente)
+      !elegidos.includes(ingrediente)
     ));
 
     destino.innerHTML = texto
@@ -474,7 +466,6 @@ const iniciarLobby = () => {
   };
 
   buscarIngrediente.oninput = evento => sugerirIngredientes(evento.target.value, sugerencias, 'agregarIngrediente');
-  buscarEvitar.oninput = evento => sugerirIngredientes(evento.target.value, sugerenciasEvitar, 'agregarEvitado');
   obtenerElemento('abrirFiltros').onclick = () => modalFiltros.classList.add('abierto');
   obtenerElemento('generarRecetas').onclick = () => generarRecetas(true);
 
@@ -488,18 +479,6 @@ const iniciarLobby = () => {
   window.quitarIngrediente = indice => {
     elegidos.splice(indice, 1);
     pintarIngredientes();
-  };
-
-  window.agregarEvitado = ingrediente => {
-    if (!evitados.includes(ingrediente)) evitados.push(ingrediente);
-    buscarEvitar.value = '';
-    sugerenciasEvitar.innerHTML = '';
-    pintarEvitados();
-  };
-
-  window.quitarEvitado = indice => {
-    evitados.splice(indice, 1);
-    pintarEvitados();
   };
 
   window.toggleFavorito = indice => {
