@@ -14,6 +14,10 @@ const path = require('path');
 //configuracion de ejs
 app.set('view engine', 'ejs');
 
+// configuracion de middleware
+//permite leer informacion enviada por un formulario html
+app.use(express.urlencoded({ extended: true }));
+
 //Archivos estaticos
 // CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS
 // Esta línea le dice a Express que sirva todo lo que esté en la carpeta 'public' [2]
@@ -48,8 +52,27 @@ app.get('/register', (req, res) => {
 });
 
 
+app.post('/register', (req, res) => {
+    const { nombre, apellido, correo, telefono, nacimiento, password } = req.body;
+
+    if (!nombre || !apellido || !correo || !password) {
+        return res.status(400).render('register', {
+            mensaje: 'Completa los campos obligatorios.'
+        });
+    }
+
+    console.log('-------------------------------------------------');
+    console.log('Datos recibidos del formulario de registro:');
+    console.log('Nombre:', nombre);
+    console.log('Apellido:', apellido);
+    console.log('Correo:', correo);
+    console.log('Teléfono:', telefono);
+    console.log('Fecha de nacimiento:', nacimiento);
+    console.log('Contraseña:', password);
+
+    res.render('login', { mensaje: 'Registro exitoso' });
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 });
-
-

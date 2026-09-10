@@ -8,25 +8,25 @@
 </head>
 <body>
   <main class="modal-fondo">  
-    <section class="modal-caja">
+    <form class="modal-caja" id="formLogin">
       <div class="icono-cocina">🍳</div>
       <h2>¡Hola de nuevo!</h2>
       <p class="subtitulo">Entra y sigue disfrutando de tus recetas.</p>
 
-      <input type="text" placeholder="Nombre de usuario" aria-label="Nombre de usuario" id="Usuario">
+      <input type="email" placeholder="Correo electrónico" aria-label="Correo electrónico" id="Usuario" required>
 
-      <input type="password" placeholder="Contraseña" aria-label="Contraseña" id="Password">
+      <input type="password" placeholder="Contraseña" aria-label="Contraseña" id="Password" required>
 
-      <button class="btn-login" id="go"> Entrar </button>
+      <button class="btn-login" type="submit" id="go">Entrar</button>
 
-      <button class="btn-login">Iniciar sesion por Google </button>
+      <button class="btn-login" type="button">Iniciar sesion por Google</button>
 
-      <button class="btn-login">Iniciar sesion por SMS </button>
+      <button class="btn-login" type="button">Iniciar sesion por SMS</button>
 
       <button class="btn-secundario" type="button">Cancelar</button>
 
       <a href="/register" class="registrar-link">¿No tienes cuenta? Regístrate</a>
-    </section>
+    </form>
   </main>
   <script src="/Js/app.js"></script>
 </body>

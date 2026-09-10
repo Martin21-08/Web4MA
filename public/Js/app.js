@@ -32,48 +32,17 @@ const guardarPerfilActivo = perfil => {
   guardar('miCocinaPerfil', perfil);
 };
 
-const registroUsuario = () => {
-  const formulario = document.getElementById('formRegistro');
-  if (!formulario) return;
-
-  formulario.addEventListener('submit', evento => {
-    evento.preventDefault();
-    const perfil = {
-      nombre: document.getElementById('registroNombre').value.trim(),
-      apellido: document.getElementById('registroApellido').value.trim(),
-      correo: document.getElementById('registroCorreo').value.trim(),
-      telefono: document.getElementById('registroTelefono').value.trim(),
-      nacimiento: document.getElementById('registroNacimiento').value,
-      password: document.getElementById('registroPassword').value,
-      alergias: []
-    };
-    const perfiles = obtenerPerfiles();
-
-    if (!perfil.nombre || !perfil.password || !perfil.apellido || !perfil.correo || !perfil.telefono || !perfil.nacimiento) {
-      alert('Por favor, completa todos los campos para crear la cuenta.');
-      return;
-    }
-    if (perfiles[perfil.nombre]) {
-      alert('Ese nombre de usuario ya está registrado.');
-      return;
-    }
-
-    guardarPerfilActivo(perfil);
-    alert('Cuenta creada exitosamente. Ahora puedes iniciar sesión.');
-    window.location.href = '/';
-  });
-};
 
 // Valida el nombre de usuario y la contraseña de la cuenta registrada.
 const iniciarSesion = () => {
-  const botonEntrar = document.getElementById('go');
+  const formulario = document.getElementById('formLogin');
   const cajaUsuario = document.getElementById('Usuario');
   const cajaContraseña = document.getElementById('Password');
-  if (!botonEntrar || !cajaUsuario || !cajaContraseña) return;
+  if (!formulario || !cajaUsuario || !cajaContraseña) return;
 
   const perfiles = obtenerPerfiles();
 
-  botonEntrar.addEventListener('click', evento => {
+  formulario.addEventListener('submit', evento => {
     evento.preventDefault();
     const nombreIngresado = cajaUsuario.value.trim();
     const contraseñaIngresada = cajaContraseña.value;
@@ -254,7 +223,7 @@ const iniciarLobby = () => {
     ingredientesElegidos.innerHTML = elegidos.map((ingrediente, indice) => `
       <span class="chip-ingrediente">
         ${ingrediente}
-        <button onclick="quitarIngrediente(${indice})">×</button>
+        <button type="button" onclick="quitarIngrediente(${indice})">×</button>
       </span>
     `).join('');
   };
@@ -267,7 +236,7 @@ const iniciarLobby = () => {
 
     destino.innerHTML = texto
       ? coincidencias.map(ingrediente => (
-        `<button class="sugerencia" onclick="${funcion}('${ingrediente}')">+ ${ingrediente}</button>`
+        `<button type="button" class="sugerencia" onclick="${funcion}('${ingrediente}')">+ ${ingrediente}</button>`
       )).join('')
       : '';
   };
@@ -313,15 +282,15 @@ const iniciarLobby = () => {
   `).join('') || '<p class="sin-comentarios">Aún no hay comentarios para esta receta.</p>';
 
   const formularioComentarios = receta => `
-    <section class="comentarios-receta">
+    <form class="comentarios-receta" id="formComentario">
       <h3>Comentarios y valoración</h3>
       <div class="estrellas-interactivas" aria-label="Calificar receta">
         ${[1, 2, 3, 4, 5].map(valor => `<button type="button" class="estrella-boton" data-receta="${receta.nombre}" data-valor="${valor}" aria-label="${valor} estrellas">☆</button>`).join('')}
       </div>
       <textarea id="nuevoComentario" class="comentario-input" placeholder="Escribe un comentario sobre esta receta" rows="3"></textarea>
-      <button type="button" class="boton-generar" id="guardarComentario">Publicar comentario</button>
+      <button type="submit" class="boton-generar" id="guardarComentario">Publicar comentario</button>
       <div id="listaComentarios">${pintarComentarios(receta)}</div>
-    </section>
+    </form>
   `;
 
   const actualizarEstrellas = estrellas => {
@@ -379,7 +348,8 @@ const iniciarLobby = () => {
         actualizarEstrellas(estrellasSeleccionadas);
       };
     });
-    document.getElementById('guardarComentario').onclick = () => {
+    document.getElementById('formComentario').onsubmit = evento => {
+      evento.preventDefault();
       const texto = document.getElementById('nuevoComentario').value.trim();
       if (!texto || !estrellasSeleccionadas) {
         alert('Escribe un comentario y selecciona una calificación.');
@@ -467,7 +437,10 @@ const iniciarLobby = () => {
 
   buscarIngrediente.oninput = evento => sugerirIngredientes(evento.target.value, sugerencias, 'agregarIngrediente');
   obtenerElemento('abrirFiltros').onclick = () => modalFiltros.classList.add('abierto');
-  obtenerElemento('generarRecetas').onclick = () => generarRecetas(true);
+  obtenerElemento('formBusqueda').onsubmit = evento => {
+    evento.preventDefault();
+    generarRecetas(true);
+  };
 
   window.agregarIngrediente = ingrediente => {
     if (!elegidos.includes(ingrediente)) elegidos.push(ingrediente);
@@ -631,7 +604,8 @@ const iniciarDespensa = () => {
     `).join('') || '<p class="sin-resultados">Tu lista de compras está vacía.</p>';
   };
 
-  obtenerElemento('agregarIngredienteDespensa').onclick = () => {
+  obtenerElemento('formDespensa').onsubmit = evento => {
+    evento.preventDefault();
     const ingrediente = nuevoIngrediente.value.trim().toLowerCase();
     const despensa = leer('miCocinaDespensa');
     if (ingrediente && !despensa.includes(ingrediente)) despensa.push(ingrediente);
