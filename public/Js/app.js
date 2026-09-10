@@ -1,9 +1,4 @@
 // ============================================================================
-// PANTALLA DE INICIO DE SESIÓN
-// Solo se activa cuando la vista contiene sus controles de acceso.
-// ============================================================================
-
-// ============================================================================
 // CUENTAS Y PERFILES
 // Cada perfil se guarda usando el nombre como identificador.
 // ============================================================================
@@ -33,31 +28,6 @@ const guardarPerfilActivo = perfil => {
 };
 
 
-// Valida el nombre de usuario y la contraseña de la cuenta registrada.
-const iniciarSesion = () => {
-  const formulario = document.getElementById('formLogin');
-  const cajaUsuario = document.getElementById('Usuario');
-  const cajaContraseña = document.getElementById('Password');
-  if (!formulario || !cajaUsuario || !cajaContraseña) return;
-
-  const perfiles = obtenerPerfiles();
-
-  formulario.addEventListener('submit', evento => {
-    evento.preventDefault();
-    const nombreIngresado = cajaUsuario.value.trim();
-    const contraseñaIngresada = cajaContraseña.value;
-    const perfil = perfiles[nombreIngresado];
-
-    if (perfil && contraseñaIngresada === perfil.password) {
-      localStorage.setItem('miCocinaUsuarioActivo', perfil.nombre);
-      localStorage.setItem('miCocinaPerfil', JSON.stringify(perfil));
-      window.location.href = '/lobby';
-    } else {
-      alert('Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo.');
-    }
-  });
-};
-
 // ============================================================================
 // UTILIDADES GENERALES
 // ============================================================================
@@ -67,8 +37,19 @@ const leer = (clave, porDefecto = []) => {
   return valor ? JSON.parse(valor) : porDefecto;
 };
 
+const enviarAlBackend = (clave, datos) => {
+  fetch('/api/datos', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ clave, datos })
+  }).catch(() => {
+    console.error(`No se pudo enviar ${clave} al backend.`);
+  });
+};
+
 const guardar = (clave, datos) => {
   localStorage.setItem(clave, JSON.stringify(datos));
+  enviarAlBackend(clave, datos);
 };
 
 const obtenerElemento = id => document.getElementById(id);
@@ -282,12 +263,12 @@ const iniciarLobby = () => {
   `).join('') || '<p class="sin-comentarios">Aún no hay comentarios para esta receta.</p>';
 
   const formularioComentarios = receta => `
-    <form class="comentarios-receta" id="formComentario">
+    <form action="/api/datos" method="POST" class="comentarios-receta" id="formComentario">
       <h3>Comentarios y valoración</h3>
       <div class="estrellas-interactivas" aria-label="Calificar receta">
         ${[1, 2, 3, 4, 5].map(valor => `<button type="button" class="estrella-boton" data-receta="${receta.nombre}" data-valor="${valor}" aria-label="${valor} estrellas">☆</button>`).join('')}
       </div>
-      <textarea id="nuevoComentario" class="comentario-input" placeholder="Escribe un comentario sobre esta receta" rows="3"></textarea>
+      <textarea id="nuevoComentario" name="comentario" class="comentario-input" placeholder="Escribe un comentario sobre esta receta" rows="3"></textarea>
       <button type="submit" class="boton-generar" id="guardarComentario">Publicar comentario</button>
       <div id="listaComentarios">${pintarComentarios(receta)}</div>
     </form>
@@ -673,9 +654,7 @@ const iniciarDespensa = () => {
 
 // Cada inicializador detecta si la pantalla actual contiene sus elementos.
 // Así un único archivo JavaScript puede compartirse entre todas las vistas.
-iniciarSesion();
 iniciarSidebar();
-registroUsuario();
 iniciarPerfil();
 iniciarLobby();
 iniciarFavoritos();

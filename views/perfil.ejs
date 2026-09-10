@@ -15,16 +15,16 @@
             <h1>Mi perfil</h1><p>Completa tus datos para personalizar tu experiencia en la cocina.</p>
         </header>
 
-      <form class="perfil-formulario" id="formPerfil">
+      <form action="/api/datos" method="POST" class="perfil-formulario" id="formPerfil">
 
         <section class="perfil-seccion">
           <h2>Datos personales</h2>
           <div class="perfil-campos">
 
-            <label>Nombre <input id="perfilNombre" type="text" placeholder="Tu nombre"></label>
-            <label>Apellido <input id="perfilApellido" type="text" placeholder="Tu apellido"></label>
-            <label>Correo electrónico <input id="perfilCorreo" type="email" placeholder="correo@ejemplo.com"></label>
-            <label>Teléfono <input id="perfilTelefono" type="tel" placeholder="+56 9 1234 5678"></label>
+            <label>Nombre <input id="perfilNombre" name="nombre" type="text" placeholder="Tu nombre"></label>
+            <label>Apellido <input id="perfilApellido" name="apellido" type="text" placeholder="Tu apellido"></label>
+            <label>Correo electrónico <input id="perfilCorreo" name="correo" type="email" placeholder="correo@ejemplo.com"></label>
+            <label>Teléfono <input id="perfilTelefono" name="telefono" type="tel" placeholder="+56 9 1234 5678"></label>
 
           </div>
         </section>

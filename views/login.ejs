@@ -8,14 +8,14 @@
 </head>
 <body>
   <main class="modal-fondo">  
-    <form class="modal-caja" id="formLogin">
+    <form action="/login" method="POST" class="modal-caja" id="formLogin">
       <div class="icono-cocina">🍳</div>
       <h2>¡Hola de nuevo!</h2>
       <p class="subtitulo">Entra y sigue disfrutando de tus recetas.</p>
 
-      <input type="email" placeholder="Correo electrónico" aria-label="Correo electrónico" id="Usuario" required>
+      <input type="email" name="email-login" placeholder="Correo electrónico" aria-label="Correo electrónico" id="Usuario" required>
 
-      <input type="password" placeholder="Contraseña" aria-label="Contraseña" id="Password" required>
+      <input type="password" name="password-login" placeholder="Contraseña" aria-label="Contraseña" id="Password" required>
 
       <button class="btn-login" type="submit" id="go">Entrar</button>
 

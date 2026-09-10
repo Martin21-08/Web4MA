@@ -15,16 +15,16 @@
         <p>Elige tus ingredientes y obtén ideas ricas para preparar.</p>
       </header>
 
-      <form class="buscador-caja" id="formBusqueda">
+      <form action="/api/datos" method="POST" class="buscador-caja" id="formBusqueda">
         <div class="buscador-linea">
-          <input id="buscarIngrediente" type="text" placeholder="Busca un ingrediente, por ejemplo: tomate" autocomplete="off">
+          <input id="buscarIngrediente" name="ingrediente" type="text" placeholder="Busca un ingrediente, por ejemplo: tomate" autocomplete="off">
           <button class="boton-tuerca" id="abrirFiltros" type="button" aria-label="Abrir filtros">⚙</button>
         </div>
         <div class="sugerencias" id="sugerencias"></div>
         <div class="ingredientes-elegidos" id="ingredientesElegidos"></div>
         <div class="opciones-busqueda">
-          <label class="faltantes-check"><input type="checkbox" id="pedirFaltantes"> Mostrar ingredientes faltantes</label>
-          <label class="faltantes-check"><input type="checkbox" id="usarDespensa"> Usar mi despensa</label>
+          <label class="faltantes-check"><input type="checkbox" name="pedirFaltantes" id="pedirFaltantes"> Mostrar ingredientes faltantes</label>
+          <label class="faltantes-check"><input type="checkbox" name="usarDespensa" id="usarDespensa"> Usar mi despensa</label>
           <button class="boton-generar" id="generarRecetas" type="submit">✨ Generar recetas</button>
         </div>
       </form>
