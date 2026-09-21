@@ -24,6 +24,41 @@ app.use(express.urlencoded({ extended: true }));
 // Esta línea le dice a Express que sirva todo lo que esté en la carpeta 'public' [2]
 app.use(express.static(path.join(__dirname, 'public'))); // [1, 6]
 
+/*
+ * Firebase Authentication se ejecuta en el navegador porque allí se muestra la
+ * ventana de Google. Esta ruta entrega ÚNICAMENTE la configuración web del
+ * proyecto al módulo del navegador. Esa configuración (incluida apiKey) es
+ * pública por diseño; no debe confundirse con una clave privada de servidor.
+ *
+ * Copia los valores que Firebase muestra en:
+ * Configuración del proyecto > Tus apps > SDK setup and configuration
+ * a las variables FIREBASE_* del archivo .env.
+ */
+app.get('/api/firebase-config', (req, res) => {
+    const firebaseConfig = {
+        apiKey: process.env.FIREBASE_API_KEY,
+        authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.FIREBASE_APP_ID
+    };
+
+    // Sin estos datos el SDK no sabe a qué proyecto de Firebase conectarse.
+    const faltantes = Object.entries(firebaseConfig)
+        .filter(([, valor]) => !valor)
+        .map(([clave]) => clave);
+
+    if (faltantes.length > 0) {
+        return res.status(503).json({
+            error: 'Firebase aún no está configurado.',
+            faltantes
+        });
+    }
+
+    res.json(firebaseConfig);
+});
+
 app.get('/', (req, res) => {
     res.render('login');
 });
@@ -108,3 +143,5 @@ app.post('/login', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
+

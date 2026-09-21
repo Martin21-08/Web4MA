@@ -19,7 +19,8 @@
 
       <button class="btn-login" type="submit" id="go">Entrar</button>
 
-      <button class="btn-login" type="button">Iniciar sesion por Google</button>
+      <!-- El módulo firebase-auth.js escucha este id y abre el selector de Google. -->
+      <button class="btn-login" type="button" id="iniciarConGoogle">Iniciar sesión con Google</button>
 
       <button class="btn-login" type="button">Iniciar sesion por SMS</button>
 
@@ -29,5 +30,6 @@
     </form>
   </main>
   <script src="/Js/app.js"></script>
+  <script type="module" src="/Js/firebase-auth.js"></script>
 </body>
 </html>
