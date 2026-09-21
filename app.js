@@ -35,6 +35,10 @@ app.use(express.static(path.join(__dirname, 'public'))); // [1, 6]
  * a las variables FIREBASE_* del archivo .env.
  */
 app.get('/api/firebase-config', (req, res) => {
+    // La configuración puede cambiar durante el desarrollo: nunca enviamos una
+    // respuesta en caché que pudiera conservar el antiguo error 503.
+    res.set('Cache-Control', 'no-store');
+
     const firebaseConfig = {
         apiKey: process.env.FIREBASE_API_KEY,
         authDomain: process.env.FIREBASE_AUTH_DOMAIN,

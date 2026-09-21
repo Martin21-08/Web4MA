@@ -15,9 +15,32 @@ import {
   signOut
 } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
 
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCZyqQIlFKEbXDrj7360ice5lcY8PFj3cU",
+  authDomain: "cookiq-c2094.firebaseapp.com",
+  projectId: "cookiq-c2094",
+  storageBucket: "cookiq-c2094.firebasestorage.app",
+  messagingSenderId: "113547191556",
+  appId: "1:113547191556:web:03610b89a12ee14d9a5c51",
+  measurementId: "G-W8GM94QE36"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
 /** Obtiene la configuración pública del proyecto sin escribirla en las vistas. */
 async function obtenerConfiguracionFirebase() {
-  const respuesta = await fetch('/api/firebase-config');
+  // cache: 'no-store' evita reutilizar un error previo después de editar .env.
+  const respuesta = await fetch('/api/firebase-config', { cache: 'no-store' });
   const datos = await respuesta.json();
 
   if (!respuesta.ok) {
@@ -82,28 +105,45 @@ try {
     if (usuario) actualizarFormularioPerfil(usuario);
   });
 
-  const botonGoogle = document.querySelector('#iniciarConGoogle');
-  if (botonGoogle) {
-    botonGoogle.addEventListener('click', async () => {
-      botonGoogle.disabled = true;
+  /**
+   * Función solicitada para llamar al login de Google.
+   * Equivale al ejemplo oficial: signInWithPopup(auth, provider). Se declara
+   * separada del botón para que puedas reutilizarla desde otro componente.
+   */
+  async function loginGoogle() {
+    const botonGoogle = document.querySelector('#iniciarConGoogle');
 
-      try {
-        // 4. GoogleAuthProvider define la identidad y signInWithPopup abre Google.
-        const proveedor = new GoogleAuthProvider();
-        const resultado = await signInWithPopup(auth, proveedor);
-        const usuario = resultado.user;
+    try {
+      if (botonGoogle) botonGoogle.disabled = true;
 
-        // 5. Confirmamos en este computador qué cuenta inició sesión.
-        window.alert(`Has iniciado sesión correctamente en este computador.\nNombre: ${usuario.displayName || usuario.email}`);
-        // 6. Al entrar al perfil, el observador anterior completa sus campos.
-        window.location.assign('/perfil');
-      } catch (error) {
-        console.error('Error de Firebase al iniciar con Google:', error);
-        window.alert(mensajeDeError(error));
-        botonGoogle.disabled = false;
-      }
-    });
+      // 4. Creamos el proveedor que Firebase usará para abrir Google.
+      const provider = new GoogleAuthProvider();
+      // 5. La llamada real a la API de Firebase Authentication.
+      const result = await signInWithPopup(auth, provider);
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const user = result.user;
+
+      // El token existe para una API de Google futura; no se guarda en pantalla.
+      const token = credential?.accessToken;
+      console.info('Google login correcto para:', user.email, Boolean(token));
+
+      // 6. El perfil se completa inmediatamente y se confirma el acceso.
+      actualizarFormularioPerfil(user);
+      window.alert(`Has iniciado sesión correctamente en este computador.\nNombre: ${user.displayName || user.email}`);
+      window.location.assign('/perfil');
+    } catch (error) {
+      console.error('Error de Firebase al iniciar con Google:', error);
+      window.alert(mensajeDeError(error));
+      if (botonGoogle) botonGoogle.disabled = false;
+    }
   }
+
+  // La exponemos solo para poder reutilizarla desde HTML u otros scripts.
+  window.loginGoogle = loginGoogle;
+
+  // 7. Implementación de loginGoogle en el botón de la pantalla de inicio.
+  const botonGoogle = document.querySelector('#iniciarConGoogle');
+  if (botonGoogle) botonGoogle.addEventListener('click', loginGoogle);
 
   // El botón ya existente de perfil ahora cierra la sesión real de Firebase.
   const botonCerrarSesion = document.querySelector('#cerrarSesion');
@@ -123,7 +163,20 @@ try {
   console.error('No se pudo inicializar Firebase:', error);
   const botonGoogle = document.querySelector('#iniciarConGoogle');
   if (botonGoogle) {
-    botonGoogle.disabled = true;
-    botonGoogle.title = 'Configura las variables FIREBASE_* en .env para habilitar Google.';
+    /*
+     * El botón se conserva activo para que la persona sepa por qué Google no
+     * puede abrirse. Deshabilitarlo silenciosamente hacía parecer que el botón
+     * estuviera roto. En cuanto se completen las variables y se reinicie el
+     * servidor, el bloque try anterior será el que conecte Firebase de verdad.
+     */
+    botonGoogle.title = 'Falta configurar Firebase en el archivo .env.';
+    botonGoogle.addEventListener('click', () => {
+      window.alert(
+        'No se puede abrir Google todavía porque Firebase no está configurado.\n\n' +
+        'Completa FIREBASE_API_KEY, FIREBASE_AUTH_DOMAIN, FIREBASE_PROJECT_ID, ' +
+        'FIREBASE_STORAGE_BUCKET, FIREBASE_MESSAGING_SENDER_ID y FIREBASE_APP_ID en .env; ' +
+        'después reinicia el servidor.'
+      );
+    });
   }
 }
