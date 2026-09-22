@@ -11,6 +11,8 @@ import {
   getAuth,
   GoogleAuthProvider,
   onAuthStateChanged,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
   signInWithPopup,
   signOut
 } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
@@ -45,12 +47,13 @@ function sincronizarPerfil(usuario) {
   const perfilExistente = Object.values(perfiles).find(perfil => (
     perfil.firebaseUid === usuario.uid || perfil.correo === usuario.email
   )) || {};
-  const { nombre, apellido } = separarNombre(usuario.displayName || usuario.email);
+  const { nombre, apellido } = separarNombre(usuario.displayName || usuario.email || 'Usuario');
   const perfil = {
     ...perfilExistente,
     nombre,
     apellido,
     correo: usuario.email || perfilExistente.correo || '',
+    telefono: usuario.phoneNumber || perfilExistente.telefono || '',
     firebaseUid: usuario.uid
   };
 
@@ -90,6 +93,18 @@ function mensajeDeError(error) {
   }
   if (error.code === 'auth/unauthorized-domain') {
     return 'Este dominio no está autorizado en Firebase. Agrega localhost en Firebase Authentication > Settings > Authorized domains.';
+  }
+  if (error.code === 'auth/operation-not-allowed') {
+    return 'Firebase bloqueó el SMS porque la región de este número está deshabilitada. En Firebase Console ve a Authentication > Settings > SMS region policy y habilita la región del número.';
+  }
+  if (error.code === 'auth/invalid-phone-number') {
+    return 'Escribe un número válido con código de país, por ejemplo +56 9 1234 5678.';
+  }
+  if (error.code === 'auth/invalid-verification-code') {
+    return 'El código SMS no es válido. Revísalo e inténtalo nuevamente.';
+  }
+  if (error.code === 'auth/too-many-requests') {
+    return 'Se hicieron demasiados intentos. Espera unos minutos antes de solicitar otro código.';
   }
   return error.message || 'No se pudo iniciar sesión con Google.';
 }
@@ -148,6 +163,70 @@ try {
   // 7. Implementación de loginGoogle en el botón de la pantalla de inicio.
   const botonGoogle = document.querySelector('#iniciarConGoogle');
   if (botonGoogle) botonGoogle.addEventListener('click', loginGoogle);
+
+  async function iniciarSesionSMS() {
+    const botonSMS = document.querySelector('#iniciarConSMS');
+    const campoTelefono = document.querySelector('#telefonoLogin');
+    const campoCodigo = document.querySelector('#codigoSMS');
+
+    try {
+      if (!campoTelefono || !campoCodigo) return;
+      botonSMS.disabled = true;
+
+      if (!window.confirmationResult) {
+        const telefono = campoTelefono.value.trim();
+        if (!telefono) {
+          campoTelefono.hidden = false;
+          window.alert('Escribe tu número de teléfono con código de país.');
+          return;
+        }
+
+        if (!window.recaptchaVerifier) {
+          window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            size: 'invisible'
+          });
+        }
+
+        window.confirmationResult = await signInWithPhoneNumber(
+          auth,
+          telefono,
+          window.recaptchaVerifier
+        );
+        campoTelefono.disabled = true;
+        campoTelefono.hidden = false;
+        campoCodigo.hidden = false;
+        botonSMS.textContent = 'Confirmar código SMS';
+        window.alert('Te enviamos un código por SMS.');
+        return;
+      }
+
+      const codigo = campoCodigo.value.trim();
+      if (!codigo) {
+        window.alert('Escribe el código recibido por SMS.');
+        return;
+      }
+
+      const resultado = await window.confirmationResult.confirm(codigo);
+      const usuario = resultado.user;
+      const perfilInicial = sincronizarPerfil(usuario);
+      actualizarFormularioPerfil(usuario);
+      await window.mostrarFormularioPerfilInicial(perfilInicial);
+      window.location.assign('/lobby');
+    } catch (error) {
+      console.error('Error de Firebase al iniciar con SMS:', error);
+      window.alert(mensajeDeError(error));
+      window.confirmationResult = null;
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
+    } finally {
+      botonSMS.disabled = false;
+    }
+  }
+
+  const botonSMS = document.querySelector('#iniciarConSMS');
+  if (botonSMS) botonSMS.addEventListener('click', iniciarSesionSMS);
 
   // El botón ya existente de perfil ahora cierra la sesión real de Firebase.
   const botonCerrarSesion = document.querySelector('#cerrarSesion');

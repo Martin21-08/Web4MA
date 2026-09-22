@@ -22,13 +22,17 @@
       <!-- El módulo firebase-auth.js escucha este id y abre el selector de Google. -->
       <button class="btn-login" type="button" id="iniciarConGoogle">Iniciar sesión con Google</button>
 
-      <button class="btn-login" type="button">Iniciar sesion por SMS</button>
+      <input type="tel" id="telefonoLogin" placeholder="Teléfono (+56 9 1234 5678)" aria-label="Teléfono para iniciar sesión" autocomplete="tel" hidden>
+      <input type="text" id="codigoSMS" placeholder="Código recibido por SMS" aria-label="Código recibido por SMS" inputmode="numeric" autocomplete="one-time-code" hidden>
+      <div id="recaptcha-container"></div>
+      <button class="btn-login" type="button" id="iniciarConSMS">Iniciar sesión por SMS</button>
 
       <button class="btn-secundario" type="button">Cancelar</button>
 
       <a href="/register" class="registrar-link">¿No tienes cuenta? Regístrate</a>
     </form>
   </main>
+  <%- include('Partials/profile-onboarding') %>
   <script src="/Js/app.js"></script>
   <script type="module" src="/Js/firebase-auth.js"></script>
 </body>
