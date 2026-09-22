@@ -15,28 +15,6 @@ import {
   signOut
 } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCZyqQIlFKEbXDrj7360ice5lcY8PFj3cU",
-  authDomain: "cookiq-c2094.firebaseapp.com",
-  projectId: "cookiq-c2094",
-  storageBucket: "cookiq-c2094.firebasestorage.app",
-  messagingSenderId: "113547191556",
-  appId: "1:113547191556:web:03610b89a12ee14d9a5c51",
-  measurementId: "G-W8GM94QE36"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
 /** Obtiene la configuración pública del proyecto sin escribirla en las vistas. */
 async function obtenerConfiguracionFirebase() {
   // cache: 'no-store' evita reutilizar un error previo después de editar .env.
@@ -59,6 +37,28 @@ function separarNombre(nombreCompleto = '') {
     nombre: partes.shift() || '',
     apellido: partes.join(' ')
   };
+}
+
+/** Persiste el usuario autenticado usando el formato que consume app.js. */
+function sincronizarPerfil(usuario) {
+  const perfiles = JSON.parse(localStorage.getItem('miCocinaPerfiles') || '{}');
+  const perfilExistente = Object.values(perfiles).find(perfil => (
+    perfil.firebaseUid === usuario.uid || perfil.correo === usuario.email
+  )) || {};
+  const { nombre, apellido } = separarNombre(usuario.displayName || usuario.email);
+  const perfil = {
+    ...perfilExistente,
+    nombre,
+    apellido,
+    correo: usuario.email || perfilExistente.correo || '',
+    firebaseUid: usuario.uid
+  };
+
+  perfiles[nombre] = perfil;
+  localStorage.setItem('miCocinaPerfiles', JSON.stringify(perfiles));
+  localStorage.setItem('miCocinaPerfil', JSON.stringify(perfil));
+  localStorage.setItem('miCocinaUsuarioActivo', nombre);
+  return perfil;
 }
 
 /**
@@ -102,7 +102,10 @@ try {
 
   // 3. El observador se ejecuta al cargar y cada vez que cambia la sesión.
   onAuthStateChanged(auth, (usuario) => {
-    if (usuario) actualizarFormularioPerfil(usuario);
+    if (usuario) {
+      sincronizarPerfil(usuario);
+      actualizarFormularioPerfil(usuario);
+    }
   });
 
   /**
@@ -128,6 +131,7 @@ try {
       console.info('Google login correcto para:', user.email, Boolean(token));
 
       // 6. El perfil se completa inmediatamente y se confirma el acceso.
+      sincronizarPerfil(user);
       actualizarFormularioPerfil(user);
       window.alert(`Has iniciado sesión correctamente en este computador.\nNombre: ${user.displayName || user.email}`);
       window.location.assign('/perfil');
