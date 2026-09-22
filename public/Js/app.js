@@ -1,42 +1,14 @@
 // ============================================================================
-// CUENTAS Y PERFILES
-// Cada perfil se guarda usando el nombre como identificador.
-// ============================================================================
-
-const obtenerPerfiles = () => {
-  const perfiles = leer('miCocinaPerfiles', {});
-  const perfilAnterior = leer('miCocinaPerfil', null);
-
-  // Migra el formato anterior de un único perfil al nuevo formato.
-  if (perfilAnterior?.nombre && !perfiles[perfilAnterior.nombre]) {
-    perfiles[perfilAnterior.nombre] = perfilAnterior;
-    guardar('miCocinaPerfiles', perfiles);
-  }
-  return perfiles;
-};
-
-const obtenerPerfilActivo = () => {
-  const nombreActivo = localStorage.getItem('miCocinaUsuarioActivo');
-  return nombreActivo ? obtenerPerfiles()[nombreActivo] : null;
-};
-
-const guardarPerfilActivo = perfil => {
-  const perfiles = obtenerPerfiles();
-  perfiles[perfil.nombre] = perfil;
-  guardar('miCocinaPerfiles', perfiles);
-  guardar('miCocinaPerfil', perfil);
-};
-
-
-// ============================================================================
 // UTILIDADES GENERALES
 // ============================================================================
 
+// Lee JSON del almacenamiento local y devuelve un valor seguro si aún no existe.
 const leer = (clave, porDefecto = []) => {
   const valor = localStorage.getItem(clave);
   return valor ? JSON.parse(valor) : porDefecto;
 };
 
+// Notifica al backend para facilitar la futura migración de localStorage a MySQL.
 const enviarAlBackend = (clave, datos) => {
   fetch('/api/datos', {
     method: 'POST',
@@ -47,9 +19,196 @@ const enviarAlBackend = (clave, datos) => {
   });
 };
 
+// Guarda primero en el navegador para que la interfaz funcione sin base de datos.
 const guardar = (clave, datos) => {
   localStorage.setItem(clave, JSON.stringify(datos));
   enviarAlBackend(clave, datos);
+};
+
+// ============================================================================
+// CUENTAS Y PERFILES PROVISIONALES
+// Este bloque se puede reemplazar por consultas a la base de datos más adelante.
+// ============================================================================
+
+// Normaliza teléfono y correo para que la misma cuenta no se guarde dos veces.
+const normalizarIdentificador = valor => String(valor || '').trim().toLowerCase().replace(/[^a-z0-9@.+_-]/g, '');
+
+// Genera una clave estable sin depender del nombre visible del usuario.
+const crearIdCuenta = ({ telefono, correo, firebaseUid } = {}) => {
+  const identificador = normalizarIdentificador(firebaseUid || correo || telefono);
+  return identificador ? `${firebaseUid ? 'google' : 'sms'}_${identificador}` : `local_${Date.now()}`;
+};
+
+const obtenerPerfiles = () => {
+  const perfiles = leer('miCocinaPerfiles', {});
+  const perfilAnterior = leer('miCocinaPerfil', null);
+
+  // Migra el formato anterior, que usaba el nombre como clave, una sola vez.
+  if (perfilAnterior?.nombre) {
+    const id = perfilAnterior.id || crearIdCuenta(perfilAnterior);
+    if (!perfiles[id]) perfiles[id] = { ...perfilAnterior, id };
+    guardar('miCocinaPerfiles', perfiles);
+  }
+  return perfiles;
+};
+
+// Busca una cuenta por teléfono, correo o UID de Google.
+const buscarPerfil = ({ telefono, correo, firebaseUid } = {}) => {
+  const valores = [telefono, correo, firebaseUid].map(normalizarIdentificador).filter(Boolean);
+  return Object.values(obtenerPerfiles()).find(perfil => (
+    valores.includes(normalizarIdentificador(perfil.telefono)) ||
+    valores.includes(normalizarIdentificador(perfil.correo)) ||
+    valores.includes(normalizarIdentificador(perfil.firebaseUid))
+  )) || null;
+};
+
+const obtenerPerfilActivo = () => {
+  const idActivo = localStorage.getItem('miCocinaUsuarioActivo');
+  return idActivo ? obtenerPerfiles()[idActivo] || null : null;
+};
+
+const guardarPerfilActivo = perfil => {
+  const perfiles = obtenerPerfiles();
+  const perfilGuardado = { ...perfil, id: perfil.id || crearIdCuenta(perfil) };
+  perfiles[perfilGuardado.id] = perfilGuardado;
+  guardar('miCocinaPerfiles', perfiles);
+  guardar('miCocinaPerfil', perfilGuardado);
+  localStorage.setItem('miCocinaUsuarioActivo', perfilGuardado.id);
+  return perfilGuardado;
+};
+
+const perfilTienePersonalizacion = perfil => Boolean(
+  perfil?.personalizacionCompleta === true || (
+    Array.isArray(perfil?.alergias) && Array.isArray(perfil?.intolerancias)
+  )
+);
+
+// Abre la personalización solo cuando todavía no se ha confirmado.
+const abrirPersonalizacion = (perfil, despuesDeGuardar = () => {}) => {
+  const modal = obtenerElemento('modalPersonalizacion');
+  const formulario = obtenerElemento('formPersonalizacion');
+
+  if (perfilTienePersonalizacion(perfil)) {
+    despuesDeGuardar(perfil);
+    return;
+  }
+
+  if (!modal || !formulario) {
+    despuesDeGuardar(perfil);
+    return;
+  }
+
+  document.querySelectorAll('#formPersonalizacion input[name="alergias"], #formPersonalizacion input[name="intolerancias"]')
+    .forEach(casilla => {
+      const grupo = casilla.name;
+      casilla.checked = (perfil[grupo] || []).includes(casilla.value);
+    });
+  modal.classList.add('abierto');
+
+  // El arreglo vacío también es válido: significa que la persona eligió no declarar restricciones.
+  formulario.onsubmit = evento => {
+    evento.preventDefault();
+    const perfilPersonalizado = guardarPerfilActivo({
+      ...perfil,
+      alergias: [...formulario.querySelectorAll('input[name="alergias"]:checked')].map(casilla => casilla.value),
+      intolerancias: [...formulario.querySelectorAll('input[name="intolerancias"]:checked')].map(casilla => casilla.value),
+      personalizacionCompleta: true
+    });
+    modal.classList.remove('abierto');
+    despuesDeGuardar(perfilPersonalizado);
+  };
+};
+
+// Expone el adaptador que luego podrá reemplazarse por llamadas a la base de datos.
+window.miCocinaAuth = {
+  buscarPerfil,
+  guardarPerfilActivo,
+  obtenerPerfilActivo,
+  crearIdCuenta,
+  perfilTienePersonalizacion,
+  abrirPersonalizacion
+};
+
+// Controla la entrada provisional por SMS y muestra el alta cuando el número es nuevo.
+const iniciarLoginSms = () => {
+  const boton = obtenerElemento('iniciarPorSms');
+  const modal = obtenerElemento('modalRegistroPerfil');
+  const telefono = obtenerElemento('smsTelefono');
+  const formulario = obtenerElemento('formRegistroPerfil');
+  if (!boton || !modal || !telefono || !formulario) return;
+
+  boton.onclick = () => {
+    const numero = window.prompt('Ingresa el número que recibió el código SMS:');
+    if (numero === null) return;
+    const telefonoNormalizado = numero.trim();
+    if (!telefonoNormalizado) {
+      window.alert('Ingresa un número de teléfono para continuar.');
+      return;
+    }
+
+    // El número funciona como identidad provisional de la cuenta SMS.
+    const perfil = buscarPerfil({ telefono: telefonoNormalizado });
+    if (perfil) {
+      guardarPerfilActivo(perfil);
+      abrirPersonalizacion(perfil, () => window.location.assign('/lobby'));
+      return;
+    }
+
+    window.alert('Este número todavía no tiene un perfil. Regístralo antes de entrar a la cocina.');
+    formulario.reset();
+    telefono.value = telefonoNormalizado;
+    modal.classList.add('abierto');
+    obtenerElemento('registroPerfilNombre')?.focus();
+  };
+
+  obtenerElemento('cerrarRegistroPerfil').onclick = () => modal.classList.remove('abierto');
+  formulario.onsubmit = evento => {
+    evento.preventDefault();
+    const perfil = Object.fromEntries(new FormData(formulario).entries());
+    const perfilGuardado = guardarPerfilActivo({ ...perfil, metodo: 'sms' });
+    modal.classList.remove('abierto');
+    abrirPersonalizacion(perfilGuardado, () => window.location.assign('/lobby'));
+  };
+};
+
+// Valida provisionalmente correo y contraseña contra los perfiles guardados.
+const iniciarLoginClasico = () => {
+  const formulario = obtenerElemento('formLogin');
+  if (!formulario) return;
+
+  formulario.onsubmit = evento => {
+    evento.preventDefault();
+    const correo = formulario.elements['email-login'].value.trim();
+    const password = formulario.elements['password-login'].value;
+    // La contraseña se compara aquí solo porque todavía no existe un backend de autenticación.
+    const perfil = buscarPerfil({ correo });
+
+    if (!perfil || perfil.password !== password) {
+      window.alert('El correo o la contraseña no coinciden con una cuenta registrada.');
+      return;
+    }
+
+    const perfilActivo = guardarPerfilActivo(perfil);
+    abrirPersonalizacion(perfilActivo, () => window.location.assign('/lobby'));
+  };
+};
+
+// Guarda el registro clásico en el mismo formato provisional que los otros accesos.
+const iniciarRegistroClasico = () => {
+  const formulario = obtenerElemento('formRegistro');
+  if (!formulario) return;
+
+  formulario.onsubmit = evento => {
+    evento.preventDefault();
+    const datos = Object.fromEntries(new FormData(formulario).entries());
+    if (buscarPerfil({ correo: datos.correo })) {
+      window.alert('Ya existe una cuenta con ese correo.');
+      return;
+    }
+    guardarPerfilActivo({ ...datos, metodo: 'clasico' });
+    window.alert('Cuenta creada correctamente. Ahora inicia sesión para personalizar tu perfil.');
+    window.location.assign('/');
+  };
 };
 
 const obtenerElemento = id => document.getElementById(id);
@@ -104,6 +263,39 @@ const iniciarPerfil = () => {
   document.querySelectorAll('#formPerfil input[name="intolerancias"]').forEach(casilla => {
     casilla.checked = intolerancias.includes(casilla.value);
   });
+
+  const modalPersonalizacion = obtenerElemento('modalPersonalizacionPerfil');
+  const formularioPersonalizacion = obtenerElemento('formPersonalizacionPerfil');
+  const abrirPersonalizacionPerfil = obtenerElemento('abrirPersonalizacionPerfil');
+  const sincronizarOpcionesPerfil = perfil => {
+    document.querySelectorAll('#formPerfil input[name="alergias"], #formPerfil input[name="intolerancias"]').forEach(casilla => {
+      casilla.checked = (perfil[casilla.name] || []).includes(casilla.value);
+    });
+  };
+
+  if (modalPersonalizacion && formularioPersonalizacion && abrirPersonalizacionPerfil) {
+    abrirPersonalizacionPerfil.onclick = () => {
+      formularioPersonalizacion.querySelectorAll('input[name="alergias"], input[name="intolerancias"]').forEach(casilla => {
+        casilla.checked = (datos[casilla.name] || []).includes(casilla.value);
+      });
+      modalPersonalizacion.classList.add('abierto');
+    };
+
+    obtenerElemento('cerrarPersonalizacionPerfil').onclick = () => modalPersonalizacion.classList.remove('abierto');
+    formularioPersonalizacion.onsubmit = evento => {
+      evento.preventDefault();
+      const perfilActualizado = guardarPerfilActivo({
+        ...datos,
+        alergias: [...formularioPersonalizacion.querySelectorAll('input[name="alergias"]:checked')].map(casilla => casilla.value),
+        intolerancias: [...formularioPersonalizacion.querySelectorAll('input[name="intolerancias"]:checked')].map(casilla => casilla.value),
+        personalizacionCompleta: true
+      });
+      Object.assign(datos, perfilActualizado);
+      sincronizarOpcionesPerfil(perfilActualizado);
+      modalPersonalizacion.classList.remove('abierto');
+      alert('Alergias e intolerancias guardadas correctamente.');
+    };
+  }
 
   const guardarCambios = () => {
     const perfilActualizado = {
@@ -660,3 +852,6 @@ iniciarLobby();
 iniciarFavoritos();
 iniciarHistorial();
 iniciarDespensa();
+iniciarLoginSms();
+iniciarLoginClasico();
+iniciarRegistroClasico();

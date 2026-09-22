@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/Img/icono.png">
   <link rel="stylesheet" href="/Css/Style.css">
   <title>Iniciar sesión</title>
 </head>
 <body>
   <main class="modal-fondo">  
     <form action="/login" method="POST" class="modal-caja" id="formLogin">
-      <div class="icono-cocina">🍳</div>
+      <div class="icono-cocina">
+        <img src="/Img/54479.jpg" alt="Logo de CookIQ">
+      </div>
       <h2>¡Hola de nuevo!</h2>
       <p class="subtitulo">Entra y sigue disfrutando de tus recetas.</p>
 
@@ -22,12 +25,64 @@
       <!-- El módulo firebase-auth.js escucha este id y abre el selector de Google. -->
       <button class="btn-login" type="button" id="iniciarConGoogle">Iniciar sesión con Google</button>
 
-      <button class="btn-login" type="button">Iniciar sesion por SMS</button>
+      <button class="btn-login" type="button" id="iniciarPorSms">Iniciar sesión por SMS</button>
 
       <button class="btn-secundario" type="button">Cancelar</button>
 
       <a href="/register" class="registrar-link">¿No tienes cuenta? Regístrate</a>
     </form>
+
+    <!-- Capa visual de CookIQ que acompaña la ventana externa de Google. -->
+    <section class="modal-google" id="modalGoogle" aria-hidden="true">
+      <div class="google-espera" role="status" aria-live="polite">
+        <img src="/Img/54479.jpg" alt="Logo de CookIQ">
+        <h2>Conectando con Google</h2>
+        <p>Completa el inicio de sesión en la ventana de Google.</p>
+        <span class="google-cargando" aria-hidden="true"></span>
+      </div>
+    </section>
+    <div class="aviso-google" id="avisoGoogle" role="alert" aria-live="assertive"></div>
+
+    <!-- Registro provisional para números que todavía no tienen una cuenta. -->
+    <section class="modal-inicio" id="modalRegistroPerfil" aria-hidden="true">
+      <form class="modal-panel modal-registro-login" id="formRegistroPerfil">
+        <button class="modal-cerrar" type="button" id="cerrarRegistroPerfil">Cerrar</button>
+        <h2>Completa tu perfil</h2>
+        <p>Este número aún no tiene una cuenta. Guarda tus datos para entrar a la cocina.</p>
+        <div class="perfil-campos">
+          <label>Nombre <input id="registroPerfilNombre" name="nombre" type="text" required></label>
+          <label>Apellido <input name="apellido" type="text" required></label>
+          <label>Correo electrónico <input name="correo" type="email" required></label>
+          <label>Teléfono <input id="smsTelefono" name="telefono" type="tel" required readonly></label>
+        </div>
+        <button class="boton-generar" type="submit">Guardar y entrar a la cocina</button>
+      </form>
+    </section>
+
+    <!-- Personalización común para cualquier método de inicio de sesión. -->
+    <section class="modal-inicio" id="modalPersonalizacion" aria-hidden="true">
+      <form class="modal-panel modal-registro-login" id="formPersonalizacion">
+        <h2>¿Quieres personalizar tus alergias de una vez?</h2>
+        <p>Selecciona lo que debemos considerar al recomendarte recetas.</p>
+        <h3 class="perfil-subseccion">Alergias</h3>
+        <div class="perfil-opciones">
+          <label><input type="checkbox" name="alergias" value="Huevo"> Huevo</label>
+          <label><input type="checkbox" name="alergias" value="Frutos secos"> Frutos secos</label>
+          <label><input type="checkbox" name="alergias" value="Maní"> Maní</label>
+          <label><input type="checkbox" name="alergias" value="Mariscos"> Mariscos</label>
+          <label><input type="checkbox" name="alergias" value="Pescado"> Pescado</label>
+          <label><input type="checkbox" name="alergias" value="Soja"> Soja</label>
+        </div>
+        <h3 class="perfil-subseccion">Intolerancias</h3>
+        <div class="perfil-opciones">
+          <label><input type="checkbox" name="intolerancias" value="Gluten"> Gluten</label>
+          <label><input type="checkbox" name="intolerancias" value="Lactosa"> Lactosa</label>
+          <label><input type="checkbox" name="intolerancias" value="Fructosa"> Fructosa</label>
+          <label><input type="checkbox" name="intolerancias" value="Sorbitol"> Sorbitol</label>
+        </div>
+        <button class="boton-generar" type="submit">Guardar y entrar a la cocina</button>
+      </form>
+    </section>
   </main>
   <script src="/Js/app.js"></script>
   <script type="module" src="/Js/firebase-auth.js"></script>

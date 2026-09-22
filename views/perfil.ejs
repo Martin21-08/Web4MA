@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/Img/icono.png">
   <title>Perfil | Mi Cocina</title>
   <link rel="stylesheet" href="/Css/Style.css">
 </head>
@@ -33,6 +34,7 @@
         <section class="perfil-seccion">
           <h2>Alergias e intolerancias</h2>
           <p class="perfil-ayuda">Selecciona las opciones que debemos considerar al sugerirte recetas.</p>
+          <button type="button" class="boton-generar" id="abrirPersonalizacionPerfil">Personalizar alergias</button>
 
           <h3 class="perfil-subseccion">Alergias</h3>
           <div class="perfil-opciones">
@@ -51,6 +53,31 @@
             <button type="button" class="boton-cerrar-sesion" id="cerrarSesion">Cerrar sesión</button>
         </div>
       </form>
+
+      <div class="modal-inicio" id="modalPersonalizacionPerfil" aria-hidden="true">
+        <form class="modal-panel modal-registro-login" id="formPersonalizacionPerfil">
+          <button class="modal-cerrar" type="button" id="cerrarPersonalizacionPerfil">Cerrar</button>
+          <h2>Personaliza tus alergias</h2>
+          <p>Selecciona lo que debemos considerar al recomendarte recetas.</p>
+          <h3 class="perfil-subseccion">Alergias</h3>
+          <div class="perfil-opciones">
+            <label><input type="checkbox" name="alergias" value="Huevo"> Huevo</label>
+            <label><input type="checkbox" name="alergias" value="Frutos secos"> Frutos secos</label>
+            <label><input type="checkbox" name="alergias" value="Maní"> Maní</label>
+            <label><input type="checkbox" name="alergias" value="Mariscos"> Mariscos</label>
+            <label><input type="checkbox" name="alergias" value="Pescado"> Pescado</label>
+            <label><input type="checkbox" name="alergias" value="Soja"> Soja</label>
+          </div>
+          <h3 class="perfil-subseccion">Intolerancias</h3>
+          <div class="perfil-opciones">
+            <label><input type="checkbox" name="intolerancias" value="Gluten"> Gluten</label>
+            <label><input type="checkbox" name="intolerancias" value="Lactosa"> Lactosa</label>
+            <label><input type="checkbox" name="intolerancias" value="Fructosa"> Fructosa</label>
+            <label><input type="checkbox" name="intolerancias" value="Sorbitol"> Sorbitol</label>
+          </div>
+          <button class="boton-generar" type="submit">Guardar personalización</button>
+        </form>
+      </div>
     </main>
   </div>
   <script src="/Js/app.js"></script>

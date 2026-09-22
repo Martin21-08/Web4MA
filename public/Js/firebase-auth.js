@@ -41,24 +41,35 @@ function separarNombre(nombreCompleto = '') {
 
 /** Persiste el usuario autenticado usando el formato que consume app.js. */
 function sincronizarPerfil(usuario) {
-  const perfiles = JSON.parse(localStorage.getItem('miCocinaPerfiles') || '{}');
-  const perfilExistente = Object.values(perfiles).find(perfil => (
-    perfil.firebaseUid === usuario.uid || perfil.correo === usuario.email
-  )) || {};
+  const authProvisional = window.miCocinaAuth;
+  // Busca primero para conservar teléfono, alergias y cualquier personalización existente.
+  const perfilExistente = authProvisional?.buscarPerfil({
+    firebaseUid: usuario.uid,
+    correo: usuario.email
+  }) || {};
   const { nombre, apellido } = separarNombre(usuario.displayName || usuario.email);
+  // Los datos de Google solo rellenan campos faltantes; no deben borrar datos editados.
   const perfil = {
     ...perfilExistente,
-    nombre,
-    apellido,
+    // Google completa los campos vacíos, pero nunca pisa una personalización.
+    nombre: perfilExistente.nombre || nombre,
+    apellido: perfilExistente.apellido || apellido,
     correo: usuario.email || perfilExistente.correo || '',
-    firebaseUid: usuario.uid
+    firebaseUid: usuario.uid,
+    metodo: 'google'
   };
 
-  perfiles[nombre] = perfil;
-  localStorage.setItem('miCocinaPerfiles', JSON.stringify(perfiles));
-  localStorage.setItem('miCocinaPerfil', JSON.stringify(perfil));
-  localStorage.setItem('miCocinaUsuarioActivo', nombre);
-  return perfil;
+  // Firebase puede sincronizar dos veces durante el mismo acceso; la marca
+  // evita que esa segunda sincronización haga parecer nuevo el perfil.
+  // Firebase puede emitir más de un cambio de estado durante un mismo login.
+  if (authProvisional?.perfilTienePersonalizacion(perfilExistente)) {
+    perfil.personalizacionCompleta = true;
+  }
+
+  // Esta función delega el guardado al adaptador provisional compartido.
+  return authProvisional
+    ? authProvisional.guardarPerfilActivo(perfil)
+    : perfil;
 }
 
 /**
@@ -74,16 +85,17 @@ function actualizarFormularioPerfil(usuario) {
   // Si no estamos en /perfil, los campos no existen y no hay nada que pintar.
   if (!campoNombre || !campoApellido || !campoCorreo) return;
 
+  const perfil = window.miCocinaAuth?.obtenerPerfilActivo() || {};
   const { nombre, apellido } = separarNombre(usuario.displayName);
-  campoNombre.value = nombre;
-  campoApellido.value = apellido;
-  campoCorreo.value = usuario.email || '';
+  campoNombre.value = perfil.nombre || nombre;
+  campoApellido.value = perfil.apellido || apellido;
+  campoCorreo.value = perfil.correo || usuario.email || '';
 }
 
 /** Traduce los fallos conocidos a mensajes accionables para la persona usuaria. */
 function mensajeDeError(error) {
-  if (error.code === 'auth/popup-closed-by-user') {
-    return 'Cerraste la ventana de Google antes de finalizar el inicio de sesión.';
+  if (['auth/popup-closed-by-user', 'auth/cancelled-popup-request'].includes(error.code)) {
+    return 'No has elegido ningún correo para iniciar sesión. Inténtalo nuevamente.';
   }
   if (error.code === 'auth/popup-blocked') {
     return 'El navegador bloqueó la ventana emergente. Permite las ventanas emergentes e inténtalo otra vez.';
@@ -94,6 +106,19 @@ function mensajeDeError(error) {
   return error.message || 'No se pudo iniciar sesión con Google.';
 }
 
+// Muestra el error dentro de la página sin bloquear la interacción con alert().
+function mostrarAvisoGoogle(mensaje) {
+  const aviso = document.querySelector('#avisoGoogle');
+  if (!aviso) {
+    window.alert(mensaje);
+    return;
+  }
+
+  aviso.textContent = mensaje;
+  aviso.classList.add('visible');
+  window.setTimeout(() => aviso.classList.remove('visible'), 4500);
+}
+
 try {
   // 1. Se obtiene la configuración y se crea una única instancia de Firebase.
   const firebaseApp = initializeApp(await obtenerConfiguracionFirebase());
@@ -101,6 +126,7 @@ try {
   const auth = getAuth(firebaseApp);
 
   // 3. El observador se ejecuta al cargar y cada vez que cambia la sesión.
+  // Este observador sincroniza la sesión restaurada al recargar la página.
   onAuthStateChanged(auth, (usuario) => {
     if (usuario) {
       sincronizarPerfil(usuario);
@@ -115,14 +141,17 @@ try {
    */
   async function loginGoogle() {
     const botonGoogle = document.querySelector('#iniciarConGoogle');
+    const modalGoogle = document.querySelector('#modalGoogle');
 
     try {
       if (botonGoogle) botonGoogle.disabled = true;
+      if (modalGoogle) modalGoogle.classList.add('abierto');
 
       // 4. Creamos el proveedor que Firebase usará para abrir Google.
       const provider = new GoogleAuthProvider();
       // 5. La llamada real a la API de Firebase Authentication.
       const result = await signInWithPopup(auth, provider);
+      if (modalGoogle) modalGoogle.classList.remove('abierto');
       const credential = GoogleAuthProvider.credentialFromResult(result);
       const user = result.user;
 
@@ -130,14 +159,24 @@ try {
       const token = credential?.accessToken;
       console.info('Google login correcto para:', user.email, Boolean(token));
 
-      // 6. El perfil se completa inmediatamente y se confirma el acceso.
-      sincronizarPerfil(user);
+      // 6. Google conserva la cuenta y completa solo los datos que faltan.
+      const perfil = sincronizarPerfil(user);
       actualizarFormularioPerfil(user);
-      window.alert(`Has iniciado sesión correctamente en este computador.\nNombre: ${user.displayName || user.email}`);
-      window.location.assign('/perfil');
+      // Solo las cuentas nuevas o incompletas pasan por la ventana de alergias.
+      const continuar = perfilPersonalizado => {
+        window.alert(`Perfil personalizado correctamente.\nNombre: ${perfilPersonalizado.nombre || user.email}`);
+        window.location.assign('/lobby');
+      };
+
+      if (window.miCocinaAuth.perfilTienePersonalizacion(perfil)) {
+        window.location.assign('/lobby');
+      } else {
+        window.miCocinaAuth.abrirPersonalizacion(perfil, continuar);
+      }
     } catch (error) {
       console.error('Error de Firebase al iniciar con Google:', error);
-      window.alert(mensajeDeError(error));
+      if (modalGoogle) modalGoogle.classList.remove('abierto');
+      mostrarAvisoGoogle(mensajeDeError(error));
       if (botonGoogle) botonGoogle.disabled = false;
     }
   }

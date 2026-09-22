@@ -1,8 +1,10 @@
 require('dotenv').config();
 
+// Crea la aplicación HTTP que recibe las peticiones del navegador.
 const express = require('express');
 const app = express();
 
+// Usa el puerto definido en .env o 3000 cuando se ejecuta localmente.
 const PORT = process.env.PORT || 3000;
 console.log(PORT);
 
@@ -11,18 +13,16 @@ console.log(user);
 
 const path = require('path');
 
-//configuracion de ejs
+// EJS permite renderizar HTML en el servidor usando las vistas de /views.
 app.set('view engine', 'ejs');
 
-// configuracion de middleware
-//permite leer informacion enviada por un formulario html
+// Convierte cuerpos JSON enviados por fetch en req.body.
 app.use(express.json());
+// Convierte datos de formularios HTML en req.body.
 app.use(express.urlencoded({ extended: true }));
 
-//Archivos estaticos
-// CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS
-// Esta línea le dice a Express que sirva todo lo que esté en la carpeta 'public' [2]
-app.use(express.static(path.join(__dirname, 'public'))); // [1, 6]
+// Expone CSS, JavaScript e imágenes sin pasar por una ruta de controlador.
+app.use(express.static(path.join(__dirname, 'public')));
 
 /*
  * Firebase Authentication se ejecuta en el navegador porque allí se muestra la
@@ -64,6 +64,7 @@ app.get('/api/firebase-config', (req, res) => {
     res.json(firebaseConfig);
 });
 
+// Estas rutas solo renderizan pantallas; la autorización real todavía es provisional.
 app.get('/', (req, res) => {
     res.render('login');
 });
@@ -92,6 +93,7 @@ app.get('/register', (req, res) => {
     res.render('register');
 });
 
+// Recibe los cambios del frontend. Por ahora acusa recibo, pero no persiste en MySQL.
 app.post('/api/datos', (req, res) => {
     const { clave, datos } = req.body;
 
@@ -103,7 +105,7 @@ app.post('/api/datos', (req, res) => {
     res.status(200).json({ guardado: true });
 });
 
-
+// Registro clásico provisional: valida campos y devuelve al login.
 app.post('/register', (req, res) => {
     const { nombre, apellido, correo, telefono, nacimiento, password } = req.body;
 
@@ -120,13 +122,13 @@ app.post('/register', (req, res) => {
     console.log('Correo:', correo);
     console.log('Teléfono:', telefono);
     console.log('Fecha de nacimiento:', nacimiento);
+    // No se debería imprimir una contraseña en producción; se conserva solo como aviso del flujo actual.
     console.log('Contraseña:', password);
 
     res.render('login', { mensaje: 'Registro exitoso' });
 });
 
-//el formulario debe verificar los datos ingresados y si son correctos, redirigir a la pagina de lobby, la verificacion de los datos deben ser iguales a los
-//ingresados en el formulario de registro, si no son correctos, debe mostrar un mensaje de error en la pagina de login
+// Login clásico provisional; el navegador valida las credenciales contra localStorage.
 
 app.post('/login', (req, res) => {
     const { 'email-login': email, 'password-login': password } = req.body;
@@ -140,6 +142,7 @@ app.post('/login', (req, res) => {
     console.log('-------------------------------------------------');
     console.log('Datos recibidos del formulario de inicio de sesión:');
     console.log('Correo:', email);
+    // No se debería imprimir una contraseña en producción; se conserva solo como aviso del flujo actual.
     console.log('Contraseña:', password);
 
     res.render('lobby', { mensaje: 'Inicio de sesión exitoso' });
