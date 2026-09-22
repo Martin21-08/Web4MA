@@ -1,4 +1,125 @@
 // ============================================================================
+<<<<<<< HEAD
+=======
+//API GOOGLE AT
+// Firebase se inicializa en firebase-auth.js, que se carga como módulo.
+
+
+
+
+//============================================================================
+// CUENTAS Y PERFILES
+// Cada perfil se guarda usando el nombre como identificador.
+// ============================================================================
+
+const obtenerPerfiles = () => {
+  const perfiles = leer('miCocinaPerfiles', {});
+  const perfilAnterior = leer('miCocinaPerfil', null);
+
+  // Migra el formato anterior de un único perfil al nuevo formato.
+  if (perfilAnterior?.nombre && !perfiles[perfilAnterior.nombre]) {
+    perfiles[perfilAnterior.nombre] = perfilAnterior;
+    guardar('miCocinaPerfiles', perfiles);
+  }
+  return perfiles;
+};
+
+const obtenerPerfilActivo = () => {
+  const nombreActivo = localStorage.getItem('miCocinaUsuarioActivo');
+  return nombreActivo ? obtenerPerfiles()[nombreActivo] : null;
+};
+
+const guardarPerfilActivo = perfil => {
+  const perfiles = obtenerPerfiles();
+  perfiles[perfil.nombre] = perfil;
+  guardar('miCocinaPerfiles', perfiles);
+  guardar('miCocinaPerfil', perfil);
+};
+
+const mostrarFormularioPerfilInicial = datosIniciales => new Promise(resolve => {
+  const modal = obtenerElemento('modalPerfilInicial');
+  const formulario = obtenerElemento('formPerfilInicial');
+  if (!modal || !formulario) {
+    resolve(null);
+    return;
+  }
+
+  const campos = {
+    nombre: 'inicioNombre',
+    apellido: 'inicioApellido',
+    nacimiento: 'inicioNacimiento',
+    correo: 'inicioCorreo',
+    telefono: 'inicioTelefono'
+  };
+  const alergias = datosIniciales?.alergias || [];
+  const intolerancias = datosIniciales?.intolerancias || [];
+
+  Object.entries(campos).forEach(([clave, id]) => {
+    obtenerElemento(id).value = datosIniciales?.[clave] || '';
+  });
+  formulario.querySelectorAll('input[name="alergias"]').forEach(casilla => {
+    casilla.checked = alergias.includes(casilla.value);
+  });
+  formulario.querySelectorAll('input[name="intolerancias"]').forEach(casilla => {
+    casilla.checked = intolerancias.includes(casilla.value);
+  });
+
+  modal.classList.add('abierto');
+  formulario.onsubmit = evento => {
+    evento.preventDefault();
+    const perfil = {
+      ...datosIniciales,
+      ...Object.fromEntries(
+        Object.entries(campos).map(([clave, id]) => [clave, obtenerElemento(id).value.trim()])
+      ),
+      alergias: [...formulario.querySelectorAll('input[name="alergias"]:checked')].map(casilla => casilla.value),
+      intolerancias: [...formulario.querySelectorAll('input[name="intolerancias"]:checked')].map(casilla => casilla.value)
+    };
+    guardarPerfilActivo(perfil);
+    modal.classList.remove('abierto');
+    resolve(perfil);
+  };
+});
+
+window.mostrarFormularioPerfilInicial = mostrarFormularioPerfilInicial;
+
+const iniciarRegistro = () => {
+  const formulario = obtenerElemento('formRegistro');
+  if (!formulario) return;
+
+  formulario.onsubmit = async evento => {
+    evento.preventDefault();
+    const boton = obtenerElemento('btnCrearCuenta');
+    if (boton) boton.disabled = true;
+
+    try {
+      const datosRegistro = Object.fromEntries(new FormData(formulario));
+      const respuesta = await fetch(formulario.action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(datosRegistro)
+      });
+      if (!respuesta.ok) throw new Error('No se pudo completar el registro.');
+
+      await mostrarFormularioPerfilInicial({
+        nombre: datosRegistro.nombre,
+        apellido: datosRegistro.apellido,
+        correo: datosRegistro.correo,
+        telefono: datosRegistro.telefono,
+        nacimiento: datosRegistro.nacimiento
+      });
+      window.location.assign('/lobby');
+    } catch (error) {
+      console.error('Error al registrar la cuenta:', error);
+      window.alert(error.message || 'No se pudo completar el registro.');
+      if (boton) boton.disabled = false;
+    }
+  };
+};
+
+
+// ============================================================================
+>>>>>>> 0f85b649bcde03bdf1c4c9f91eaeda284b10a947
 // UTILIDADES GENERALES
 // ============================================================================
 
@@ -848,6 +969,7 @@ const iniciarDespensa = () => {
 // Así un único archivo JavaScript puede compartirse entre todas las vistas.
 iniciarSidebar();
 iniciarPerfil();
+iniciarRegistro();
 iniciarLobby();
 iniciarFavoritos();
 iniciarHistorial();

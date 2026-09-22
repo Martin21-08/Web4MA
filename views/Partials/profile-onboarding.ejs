@@ -1,0 +1,39 @@
+<div class="modal-inicio" id="modalPerfilInicial" role="dialog" aria-modal="true" aria-labelledby="tituloPerfilInicial">
+  <section class="modal-panel perfil-inicial-panel">
+    <h2 id="tituloPerfilInicial">Antes de empezar a cocinar</h2>
+    <p>Completa tus datos para personalizar tus recetas.</p>
+    <form id="formPerfilInicial" class="perfil-inicial-form">
+      <div class="perfil-inicial-grid">
+        <label>Nombre<input id="inicioNombre" name="nombre" type="text" required></label>
+        <label>Apellido<input id="inicioApellido" name="apellido" type="text" required></label>
+        <label>Fecha de nacimiento<input id="inicioNacimiento" name="nacimiento" type="date" required></label>
+        <label>Correo electrónico<input id="inicioCorreo" name="correo" type="email" required></label>
+        <label>Teléfono<input id="inicioTelefono" name="telefono" type="tel" placeholder="+56 9 1234 5678"></label>
+      </div>
+
+      <fieldset>
+        <legend>Alergias</legend>
+        <div class="perfil-opciones">
+          <label><input type="checkbox" name="alergias" value="Huevo"> Huevo</label>
+          <label><input type="checkbox" name="alergias" value="Frutos secos"> Frutos secos</label>
+          <label><input type="checkbox" name="alergias" value="Maní"> Maní</label>
+          <label><input type="checkbox" name="alergias" value="Mariscos"> Mariscos</label>
+          <label><input type="checkbox" name="alergias" value="Pescado"> Pescado</label>
+          <label><input type="checkbox" name="alergias" value="Soja"> Soja</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Intolerancias</legend>
+        <div class="perfil-opciones">
+          <label><input type="checkbox" name="intolerancias" value="Gluten"> Gluten</label>
+          <label><input type="checkbox" name="intolerancias" value="Lactosa"> Lactosa</label>
+          <label><input type="checkbox" name="intolerancias" value="Fructosa"> Fructosa</label>
+          <label><input type="checkbox" name="intolerancias" value="Sorbitol"> Sorbitol</label>
+        </div>
+      </fieldset>
+
+      <button class="boton-generar" type="submit">Empezar a cocinar</button>
+    </form>
+  </section>
+</div>

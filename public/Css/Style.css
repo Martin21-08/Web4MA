@@ -211,7 +211,21 @@ body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; b
 .modal-panel h2 { margin: 0 0 9px; }
 .modal-panel h3 { margin: 22px 0 8px; }
 .modal-panel p, .modal-panel li { color: #715c4f; line-height: 1.55; }
+<<<<<<< HEAD
 .modal-cerrar { float: right; border: 0; background: var(--cookiq-pink); border-radius: 9px; padding: 7px 10px; color: var(--cookiq-purple); font-weight: 800; cursor: pointer; }
+=======
+.perfil-inicial-panel { width: min(100%, 680px); }
+.perfil-inicial-panel > p { margin: 0 0 18px; }
+.perfil-inicial-form { display: grid; gap: 18px; }
+.perfil-inicial-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.perfil-inicial-grid label { display: grid; gap: 7px; color: #695548; font-size: 14px; font-weight: 800; }
+.perfil-inicial-grid input { width: 100%; padding: 11px; border: 1px solid #eadbd0; border-radius: 10px; outline: none; color: var(--text); font: inherit; }
+.perfil-inicial-grid input:focus { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(255, 107, 95, .14); }
+.perfil-inicial-form fieldset { margin: 0; padding: 14px; border: 1px solid #efdcd1; border-radius: 14px; }
+.perfil-inicial-form legend { padding: 0 6px; color: #5e4b40; font-weight: 800; }
+.perfil-inicial-form .boton-generar { width: 100%; }
+.modal-cerrar { float: right; border: 0; background: #ffe5dc; border-radius: 9px; padding: 7px 10px; color: #a44237; font-weight: 800; cursor: pointer; }
+>>>>>>> 0f85b649bcde03bdf1c4c9f91eaeda284b10a947
 .comentarios-receta { margin-top: 26px; padding-top: 20px; border-top: 1px solid #efdcd1; }
 .comentarios-receta h3 { margin: 0 0 12px; }
 .estrellas-interactivas { display: flex; gap: 4px; margin-bottom: 12px; }
@@ -265,3 +279,4 @@ body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; b
 .boton-cerrar-sesion:hover { background: var(--cookiq-pink); }
 
 @media (max-width: 570px) { .perfil-campos { grid-template-columns: 1fr; } .perfil-acciones { flex-direction: column; } .perfil-acciones .boton-generar { width: 100%; } }
+@media (max-width: 570px) { .perfil-inicial-grid { grid-template-columns: 1fr; } }
