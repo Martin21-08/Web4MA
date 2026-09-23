@@ -43,35 +43,22 @@ function separarNombre(nombreCompleto = '') {
 
 /** Persiste el usuario autenticado usando el formato que consume app.js. */
 function sincronizarPerfil(usuario) {
-<<<<<<< HEAD
   const authProvisional = window.miCocinaAuth;
   // Busca primero para conservar teléfono, alergias y cualquier personalización existente.
   const perfilExistente = authProvisional?.buscarPerfil({
     firebaseUid: usuario.uid,
     correo: usuario.email
   }) || {};
-  const { nombre, apellido } = separarNombre(usuario.displayName || usuario.email);
-  // Los datos de Google solo rellenan campos faltantes; no deben borrar datos editados.
-=======
-  const perfiles = JSON.parse(localStorage.getItem('miCocinaPerfiles') || '{}');
-  const perfilExistente = Object.values(perfiles).find(perfil => (
-    perfil.firebaseUid === usuario.uid || perfil.correo === usuario.email
-  )) || {};
   const { nombre, apellido } = separarNombre(usuario.displayName || usuario.email || 'Usuario');
->>>>>>> 0f85b649bcde03bdf1c4c9f91eaeda284b10a947
   const perfil = {
     ...perfilExistente,
     // Google completa los campos vacíos, pero nunca pisa una personalización.
     nombre: perfilExistente.nombre || nombre,
     apellido: perfilExistente.apellido || apellido,
     correo: usuario.email || perfilExistente.correo || '',
-<<<<<<< HEAD
+    telefono: usuario.phoneNumber || perfilExistente.telefono || '',
     firebaseUid: usuario.uid,
     metodo: 'google'
-=======
-    telefono: usuario.phoneNumber || perfilExistente.telefono || '',
-    firebaseUid: usuario.uid
->>>>>>> 0f85b649bcde03bdf1c4c9f91eaeda284b10a947
   };
 
   // Firebase puede sincronizar dos veces durante el mismo acceso; la marca
