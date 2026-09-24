@@ -10,30 +10,6 @@
 // Cada perfil se guarda usando el nombre como identificador.
 // ============================================================================
 
-const obtenerPerfiles = () => {
-  const perfiles = leer('miCocinaPerfiles', {});
-  const perfilAnterior = leer('miCocinaPerfil', null);
-
-  // Migra el formato anterior de un único perfil al nuevo formato.
-  if (perfilAnterior?.nombre && !perfiles[perfilAnterior.nombre]) {
-    perfiles[perfilAnterior.nombre] = perfilAnterior;
-    guardar('miCocinaPerfiles', perfiles);
-  }
-  return perfiles;
-};
-
-const obtenerPerfilActivo = () => {
-  const nombreActivo = localStorage.getItem('miCocinaUsuarioActivo');
-  return nombreActivo ? obtenerPerfiles()[nombreActivo] : null;
-};
-
-const guardarPerfilActivo = perfil => {
-  const perfiles = obtenerPerfiles();
-  perfiles[perfil.nombre] = perfil;
-  guardar('miCocinaPerfiles', perfiles);
-  guardar('miCocinaPerfil', perfil);
-};
-
 const mostrarFormularioPerfilInicial = datosIniciales => new Promise(resolve => {
   const modal = obtenerElemento('modalPerfilInicial');
   const formulario = obtenerElemento('formPerfilInicial');
