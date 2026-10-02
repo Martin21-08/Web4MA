@@ -1,6 +1,6 @@
-// ============================================================================
-//API GOOGLE AT
-// Firebase se inicializa en firebase-auth.js, que se carga como módulo.
+// Este archivo controla las pantallas y guarda perfiles y preferencias en el navegador.
+// El formulario clásico de registro se envía directamente a la ruta de Express.
+// La autenticación de Google está en firebase-auth.js.
 
 
 
@@ -21,7 +21,6 @@ const mostrarFormularioPerfilInicial = datosIniciales => new Promise(resolve => 
   const campos = {
     nombre: 'inicioNombre',
     apellido: 'inicioApellido',
-    nacimiento: 'inicioNacimiento',
     correo: 'inicioCorreo',
     telefono: 'inicioTelefono'
   };
@@ -56,41 +55,6 @@ const mostrarFormularioPerfilInicial = datosIniciales => new Promise(resolve => 
 });
 
 window.mostrarFormularioPerfilInicial = mostrarFormularioPerfilInicial;
-
-const iniciarRegistro = () => {
-  const formulario = obtenerElemento('formRegistro');
-  if (!formulario) return;
-
-  formulario.onsubmit = async evento => {
-    evento.preventDefault();
-    const boton = obtenerElemento('btnCrearCuenta');
-    if (boton) boton.disabled = true;
-
-    try {
-      const datosRegistro = Object.fromEntries(new FormData(formulario));
-      const respuesta = await fetch(formulario.action, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(datosRegistro)
-      });
-      if (!respuesta.ok) throw new Error('No se pudo completar el registro.');
-
-      await mostrarFormularioPerfilInicial({
-        nombre: datosRegistro.nombre,
-        apellido: datosRegistro.apellido,
-        correo: datosRegistro.correo,
-        telefono: datosRegistro.telefono,
-        nacimiento: datosRegistro.nacimiento
-      });
-      window.location.assign('/lobby');
-    } catch (error) {
-      console.error('Error al registrar la cuenta:', error);
-      window.alert(error.message || 'No se pudo completar el registro.');
-      if (boton) boton.disabled = false;
-    }
-  };
-};
-
 
 // ============================================================================
 
@@ -266,46 +230,6 @@ const iniciarLoginSms = () => {
   };
 };
 
-// Valida provisionalmente correo y contraseña contra los perfiles guardados.
-const iniciarLoginClasico = () => {
-  const formulario = obtenerElemento('formLogin');
-  if (!formulario) return;
-
-  formulario.onsubmit = evento => {
-    evento.preventDefault();
-    const correo = formulario.elements['email-login'].value.trim();
-    const password = formulario.elements['password-login'].value;
-    // La contraseña se compara aquí solo porque todavía no existe un backend de autenticación.
-    const perfil = buscarPerfil({ correo });
-
-    if (!perfil || perfil.password !== password) {
-      window.alert('El correo o la contraseña no coinciden con una cuenta registrada.');
-      return;
-    }
-
-    const perfilActivo = guardarPerfilActivo(perfil);
-    abrirPersonalizacion(perfilActivo, () => window.location.assign('/lobby'));
-  };
-};
-
-// Guarda el registro clásico en el mismo formato provisional que los otros accesos.
-const iniciarRegistroClasico = () => {
-  const formulario = obtenerElemento('formRegistro');
-  if (!formulario) return;
-
-  formulario.onsubmit = evento => {
-    evento.preventDefault();
-    const datos = Object.fromEntries(new FormData(formulario).entries());
-    if (buscarPerfil({ correo: datos.correo })) {
-      window.alert('Ya existe una cuenta con ese correo.');
-      return;
-    }
-    guardarPerfilActivo({ ...datos, metodo: 'clasico' });
-    window.alert('Cuenta creada correctamente. Ahora inicia sesión para personalizar tu perfil.');
-    window.location.assign('/');
-  };
-};
-
 const obtenerElemento = id => document.getElementById(id);
 const favoritos = () => leer('miCocinaFavoritos');
 
@@ -342,8 +266,7 @@ const iniciarPerfil = () => {
     nombre: 'perfilNombre',
     apellido: 'perfilApellido',
     correo: 'perfilCorreo',
-    telefono: 'perfilTelefono',
-    nacimiento: 'perfilNacimiento'
+    telefono: 'perfilTelefono'
   };
   const datos = obtenerPerfilActivo() || {};
   const alergias = datos.alergias || [];
@@ -943,11 +866,9 @@ const iniciarDespensa = () => {
 // Así un único archivo JavaScript puede compartirse entre todas las vistas.
 iniciarSidebar();
 iniciarPerfil();
-iniciarRegistro();
 iniciarLobby();
 iniciarFavoritos();
 iniciarHistorial();
 iniciarDespensa();
 iniciarLoginSms();
-iniciarLoginClasico();
-iniciarRegistroClasico();
+// Los formularios clásicos usan sus POST nativos para llegar a las rutas Express y MySQL.

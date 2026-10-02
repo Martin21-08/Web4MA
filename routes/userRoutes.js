@@ -1,3 +1,7 @@
+// Define las direcciones para mostrar formularios y recibir sus datos.
+// Registro: register.ejs -> POST /usuarios/registro -> este archivo ->
+// userController.register -> userModel -> db.query -> tabla usuario.
+// El controlador devuelve al navegador la página que corresponde.
 const express = require("express");
 
 const router = express.Router();
@@ -17,6 +21,7 @@ router.get(
 
 
 // Recibir formulario
+// Los nombres de los campos llegan en req.body al controlador.
 router.post(
     "/registro",
     userController.register

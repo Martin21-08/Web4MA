@@ -1,3 +1,4 @@
+// Cada función entrega a Express la vista de una página del sitio.
 const mostrarLobby = (req, res) => res.render('lobby');
 const mostrarDespensa = (req, res) => res.render('despensa');
 const mostrarFavoritos = (req, res) => res.render('favoritos');

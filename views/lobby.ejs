@@ -1,3 +1,4 @@
+<%# Pantalla principal: app.js muestra recetas y conserva búsquedas en el navegador. %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -16,6 +17,7 @@
         <p>Elige tus ingredientes y obtén ideas ricas para preparar.</p>
       </header>
 
+      <%# El JavaScript reúne los ingredientes elegidos y actualiza la lista de recetas. %>
       <form action="/api/datos" method="POST" class="buscador-caja" id="formBusqueda">
         <div class="buscador-linea">
           <input id="buscarIngrediente" name="ingrediente" type="text" placeholder="Busca un ingrediente, por ejemplo: tomate" autocomplete="off">

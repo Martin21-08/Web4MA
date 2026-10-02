@@ -1,4 +1,7 @@
+// Punto de entrada: prepara Express, recibe los formularios y conecta las rutas.
+// En el registro, los datos pasan del formulario a req.body y luego a MySQL.
 const express = require("express");
+const path = require("path");
 
 const session = require("express-session");
 
@@ -37,6 +40,7 @@ app.set("view engine", "ejs");
 // RECIBIR DATOS DE FORMULARIOS
 // ======================================
 
+// Convierte los campos HTML en un objeto que se puede leer como req.body.correo.
 app.use(
     express.urlencoded({
         extended: true
@@ -99,6 +103,48 @@ app.use(flash()); //para poder usar los mensajes de error o exito en la vista
 // ======================================
 // RUTAS
 // ======================================
+
+// Estas rutas conectan las direcciones web con sus controladores.
+// Publica únicamente el módulo de autenticación de Google desde su ubicación actual.
+app.get("/Js/firebase-auth.js", (req, res, next) => {
+    res.type("application/javascript");
+    res.sendFile(path.join(__dirname, "controllers", "firebase-auth.js"), error => {
+        if (error) next(error);
+    });
+});
+
+// Publica solo la configuración web de Firebase que necesita el SDK del navegador.
+app.get("/api/firebase-config", (req, res) => {
+    const firebaseConfig = {
+        apiKey: process.env.FIREBASE_API_KEY,
+        authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.FIREBASE_APP_ID,
+        measurementId: process.env.FIREBASE_MEASUREMENT_ID
+    };
+    const requiredKeys = [
+        "apiKey",
+        "authDomain",
+        "projectId",
+        "storageBucket",
+        "messagingSenderId",
+        "appId"
+    ];
+    const missingKeys = requiredKeys.filter(key => !firebaseConfig[key]);
+
+    // Evita almacenar una respuesta incompleta en caché mientras se corrige .env.
+    res.set("Cache-Control", "no-store");
+    if (missingKeys.length) {
+        return res.status(503).json({
+            error: "La autenticación Firebase no está configurada en el servidor.",
+            faltantes: missingKeys
+        });
+    }
+
+    return res.json(firebaseConfig);
+});
 
 app.get("/", (req, res) => {
     res.redirect("/usuarios/login");

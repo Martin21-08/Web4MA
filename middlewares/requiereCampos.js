@@ -1,3 +1,4 @@
+// Crea una revisión reutilizable para comprobar que no falten campos.
 const requiere = (campos) => {
     return (req, res, next) => {
         const faltantes = campos.filter(campo => !req.body[campo]);

@@ -1,3 +1,4 @@
+<%# Pantalla de acceso: correo y contraseña van a Express; Google y SMS usan Firebase. %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,6 +10,7 @@
 </head>
 <body>
   <main class="modal-fondo">  
+    <%# Este formulario envía sus campos al controlador de usuarios para validarlos en MySQL. %>
     <form action="/usuarios/login" method="POST" class="modal-caja" id="formLogin">
       <div class="icono-cocina">
         <img src="/Img/54479.jpg" alt="Logo de CookIQ">

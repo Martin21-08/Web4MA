@@ -1,3 +1,4 @@
+// Revisa la lista de ingredientes antes de que llegue al controlador.
 const validarGeneracion = (req, res, next) => {
     const { ingredientes } = req.body;
 
@@ -11,6 +12,7 @@ const validarGeneracion = (req, res, next) => {
         return res.status(400).json({ ok: false, error: 'No puedes enviar más de 20 ingredientes.' });
     }
 
+    // Si los datos son válidos, deja continuar la petición.
     next();
 };
 

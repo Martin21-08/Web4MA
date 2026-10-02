@@ -1,10 +1,7 @@
-/*
- * Inicio de sesión con Google mediante Firebase Authentication.
+/* Inicio de sesión con Google y SMS desde el navegador.
  *
- * Se usan los módulos modernos de Firebase que recomienda su documentación:
- * initializeApp, getAuth, GoogleAuthProvider, signInWithPopup y
- * onAuthStateChanged. Este archivo es un módulo del navegador; por eso debe
- * cargarse con <script type="module"> y no mediante require() en app.js.
+ * La vista login.ejs carga este archivo como módulo. Pide la configuración
+ * al servidor, abre Firebase y guarda el perfil de la sesión en localStorage.
  */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
 import {

@@ -1,3 +1,4 @@
+<%# Formulario de alta: los nombres de cada campo se envían en el POST a /usuarios/registro. %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,6 +10,7 @@
 </head>
 <body>
   <main class="modal-fondo">
+    <%# Express recibe estos campos, el controlador los valida y el modelo los guarda en MySQL. %>
     <form action="/usuarios/registro" method="POST" class="modal-caja" id="formRegistro">
       <div class="icono-cocina">
         <img src="/Img/54479.jpg" alt="Logo de CookIQ">
@@ -21,7 +23,6 @@
       <input name="apellidos" id="registroApellido" type="text" placeholder="Apellido" aria-label="Apellido" required>
       <input name="correo" id="registroCorreo" type="email" placeholder="Correo electrónico" aria-label="Correo electrónico" required>
       <input name="telefono" id="registroTelefono" type="tel" placeholder="+56 9 1234 5678" aria-label="Teléfono">
-      <input name="nacimiento" id="registroNacimiento" type="date" aria-label="Fecha de nacimiento">
       <input name="password" id="registroPassword" type="password" placeholder="Contraseña" aria-label="Contraseña" required>
       <button class="btn-register" type="submit" id="btnCrearCuenta">Crear cuenta</button>
       <button class="btn-secundario" type="button">Cancelar</button>

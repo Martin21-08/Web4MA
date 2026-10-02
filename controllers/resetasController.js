@@ -1,7 +1,9 @@
+// Atiende las peticiones de recetas y usa el modelo cuando necesita ingredientes.
 const ingredienteModel = require('../models/ingredienteModel');
 
 const listarIngredientes = async (req, res, next) => {
     try {
+        // El modelo consulta MySQL y el controlador devuelve el resultado como JSON.
         const ingredientes = await ingredienteModel.obtenerTodos();
         res.json({ ok: true, ingredientes });
     } catch (error) {
@@ -11,6 +13,7 @@ const listarIngredientes = async (req, res, next) => {
 
 const generarRecetas = async (req, res, next) => {
     try {
+        // Los ingredientes ya fueron revisados por el middleware de la ruta.
         const { ingredientes } = req.body;
         // Aquí se conectará Gemini más adelante.
         const recetas = ingredientes.map((ingrediente) => ({

@@ -19,6 +19,7 @@ const userController = {
     // REGISTRAR USUARIO
     // =========================================
 
+    // Lee req.body, valida los datos y pide al modelo que guarde la cuenta.
     register: async (req, res) => {
 
         try {
@@ -32,6 +33,17 @@ const userController = {
             const telefono = telefonoIngresado
                 ? telefonoIngresado.replace(/[\s()-]/g, "")
                 : null;
+
+            // En desarrollo se registran los campos recibidos, pero nunca la contraseña.
+            if (process.env.NODE_ENV !== "production") {
+                console.info("[REGISTRO] Datos recibidos:", {
+                    nombres,
+                    apellidos,
+                    correo,
+                    telefono,
+                    contrasena: password ? "[omitida por seguridad]" : "[no ingresada]"
+                });
+            }
 
 
             // 2. Validar los campos requeridos antes de consultar la base de datos.
@@ -85,19 +97,9 @@ const userController = {
                 contrasena_hash: contrasenaHash
             });
 
-            // 6. Mostrar datos útiles solo en desarrollo; ocultar parte del teléfono.
+            // 6. Confirmar en consola que la inserción devolvió el ID del usuario.
             console.info("[REGISTRO] Usuario registrado correctamente.");
-            if (process.env.NODE_ENV !== "production") {
-                console.info("[REGISTRO] Datos registrados:", {
-                    id_usuario: idUsuario,
-                    nombres,
-                    apellidos,
-                    correo,
-                    telefono: telefono
-                        ? `${"*".repeat(Math.max(0, telefono.length - 4))}${telefono.slice(-4)}`
-                        : null
-                });
-            }
+            console.info("[REGISTRO] ID de usuario creado:", idUsuario);
 
             // 7. Informar al usuario y enviarlo al inicio de sesión.
             req.flash(
@@ -143,6 +145,7 @@ const userController = {
     // INICIAR SESIÓN
     // =========================================
 
+    // Busca la cuenta en MySQL y compara la contraseña con su versión protegida.
     login: async (req, res) => {
 
         try {

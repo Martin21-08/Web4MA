@@ -1,10 +1,10 @@
-// Importa el cliente asíncrono de MySQL para poder usar async/await.
+// Prepara la conexión compartida que usan los modelos para hablar con MySQL.
 const mysql = require('mysql2/promise');
 
 const hostMysql = (process.env.MYSQL_HOST || '').toLowerCase();
 const hostLocal = ['localhost', '127.0.0.1', '::1'].includes(hostMysql);
 
-// El pool reutiliza conexiones y evita abrir una conexión nueva por cada petición.
+// El pool reutiliza conexiones para no abrir una conexión nueva en cada consulta.
 const pool = mysql.createPool({
     // Todas estas credenciales se leen desde .env y no deben escribirse en el código.
     host: process.env.MYSQL_HOST,
