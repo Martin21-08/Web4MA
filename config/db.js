@@ -1,6 +1,9 @@
 // Importa el cliente asíncrono de MySQL para poder usar async/await.
 const mysql = require('mysql2/promise');
 
+const hostMysql = (process.env.MYSQL_HOST || '').toLowerCase();
+const hostLocal = ['localhost', '127.0.0.1', '::1'].includes(hostMysql);
+
 // El pool reutiliza conexiones y evita abrir una conexión nueva por cada petición.
 const pool = mysql.createPool({
     // Todas estas credenciales se leen desde .env y no deben escribirse en el código.
@@ -14,8 +17,8 @@ const pool = mysql.createPool({
     connectionLimit: 10,
     // 0 significa que no se limita la cola de solicitudes pendientes.
     queueLimit:0,
-    ssl: {
-        // Rechaza certificados TLS que no puedan verificarse.
+    ssl: hostLocal ? undefined : {
+        // Rechaza certificados TLS que no puedan verificarse en hosts remotos.
         rejectUnauthorized: true
     }
 
@@ -25,4 +28,3 @@ const pool = mysql.createPool({
 
 // Exporta el pool para que los controladores puedan ejecutar consultas.
 module.exports = pool;
-
