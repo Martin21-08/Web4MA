@@ -1,12 +1,16 @@
-// Direcciones de la API para consultar ingredientes y pedir recetas.
 const express = require('express');
 const router = express.Router();
-const recetaController = require('../controllers/resetasController');
-const validarGeneracion = require('../middlewares/validarGeneracion');
 
-// GET devuelve los ingredientes disponibles en formato JSON.
-router.get('/api/ingredientes', recetaController.listarIngredientes);
-// POST revisa los ingredientes antes de pasarlos al controlador.
-router.post('/recetas/generar', validarGeneracion, recetaController.generarRecetas);
+// Importamos tu controlador (el que tiene listarIngredientes y generarRecetas)
+const recetasController = require('../controllers/recetasController');
 
+// 1. Ruta para obtener la lista de ingredientes desde MySQL
+// Responderá a: GET http://localhost:3000/ingredientes
+router.get('/ingredientes', recetasController.listarIngredientes);
+
+// 2. Ruta temporal para simular la generación de recetas
+// Responderá a: POST http://localhost:3000/generar
+router.post('/generar', recetasController.generarRecetas);
+
+// Exportamos las rutas para que app.js las pueda usar
 module.exports = router;

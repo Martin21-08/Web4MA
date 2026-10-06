@@ -19,12 +19,10 @@ if (!sessionSecret) {
 }
 
 
-const userRoutes =
-    require("./routes/userRoutes");
-const viewsRoutes =
-    require("./routes/viewsRoutes");
-const recetasRoutes =
-    require("./routes/recetasRoutes");
+const userRoutes = require("./routes/userRoutes");
+const viewsRoutes = require("./routes/viewsRoutes");
+const recetasRoutes = require("./routes/recetasRoutes");
+
 
 const app = express();
 
@@ -154,6 +152,13 @@ app.use("/usuarios", userRoutes);
 app.use("/", viewsRoutes);
 app.use("/", recetasRoutes);
 
+// ======================================
+// Rutas de Firebase
+// ======================================
+
+const firebaseRoutes = require('./routes/firebaseRoutes');
+
+app.use('/api', firebaseRoutes);
 
 // ======================================
 // SERVIDOR

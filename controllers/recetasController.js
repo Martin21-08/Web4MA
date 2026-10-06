@@ -25,4 +25,4 @@ const generarRecetas = async (req, res, next) => {
     }
 };
 
-module.exports = { listarIngredientes, generarRecetas };
+module.exports = { listarIngredientes, generarRecetas, };
