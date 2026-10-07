@@ -2,6 +2,7 @@
 const crypto = require("crypto");
 
 const userModel = require("../models/userModel");
+const emailService = require("../services/emailService");
 
 
 const userController = {
@@ -255,28 +256,21 @@ const userController = {
 
     solicitarRecuperacion: async (req, res) => {
         try {
-
-            // Obtener el correo ingresado
+            // Obtener y normalizar el correo ingresado.
             const correo = String(req.body.correo || "")
                 .trim()
                 .toLowerCase();
 
-            // Verificar que haya escrito un correo
+            // Solicitar el correo si el campo está vacío.
             if (!correo) {
                 req.flash("error", "Debes ingresar tu correo.");
                 return res.redirect("/usuarios/recuperar");
             }
 
-            // Buscar el usuario
+            // Buscar la cuenta asociada al correo.
             const usuario = await userModel.buscarPorCorreo(correo);
 
-            /*
-             * Por seguridad NO decimos si el correo existe.
-             *
-             * Tanto si existe como si no existe,
-             * mostramos el mismo mensaje.
-             */
-
+            // Usar la misma respuesta para evitar revelar si la cuenta existe.
             if (!usuario) {
                 req.flash(
                     "success",
@@ -286,49 +280,36 @@ const userController = {
                 return res.redirect("/usuarios/recuperar");
             }
 
-            // =========================================
-            // GENERAR TOKEN
-            // =========================================
-
-            // Token aleatorio que irá dentro del enlace del correo
+            // Generar un token seguro para el enlace de recuperación.
             const token = crypto.randomBytes(32).toString("hex");
 
-            // Crear hash del token para guardarlo en MySQL
+            // Guardar únicamente el hash del token.
             const tokenHash = crypto
                 .createHash("sha256")
                 .update(token)
                 .digest("hex");
 
-            // El enlace tendrá una duración de 1 hora
+            // El token vence en una hora.
             const fechaExpiracion = new Date(
                 Date.now() + 60 * 60 * 1000
             );
 
-            // Guardar el hash en la base de datos
+            // Guardar el hash, el usuario y la fecha de expiración.
             await userModel.guardarTokenRecuperacion({
                 id_usuario: usuario.id_usuario,
                 token_hash: tokenHash,
                 fecha_expiracion: fechaExpiracion
             });
 
-            /*
-             * IMPORTANTE:
-             * El token original NO se guarda en MySQL.
-             *
-             * El token original será utilizado para crear
-             * el enlace que llegará al correo.
-             */
-
-            console.log("[RECUPERACIÓN] Token generado para:", correo);
-
-            // Por ahora dejamos el token en consola para probar.
-            // Después lo reemplazaremos por el envío real a Gmail.
-            console.log(
-                "[RECUPERACIÓN] Enlace:",
-                `http://localhost:3000/usuarios/restablecer/${token}`
+            // Enviar el enlace al correo de la cuenta.
+            console.log("[RECUPERACIÓN] Intentando enviar correo a:", usuario.correo);
+            await emailService.enviarCorreoRecuperacion(
+                usuario.correo,
+                token
             );
+            console.log("[RECUPERACIÓN] Correo enviado correctamente");
 
-            // Mensaje genérico
+            // Confirmar la solicitud con el mensaje genérico.
             req.flash(
                 "success",
                 "Si el correo está registrado, recibirás un enlace para restablecer tu contraseña."
@@ -337,11 +318,8 @@ const userController = {
             return res.redirect("/usuarios/recuperar");
 
         } catch (error) {
-
-            console.error(
-                "[RECUPERACIÓN] Error:",
-                error.code || "UNKNOWN"
-            );
+            console.error("[RECUPERACIÓN] ERROR COMPLETO:");
+            console.error(error);
 
             req.flash(
                 "error",
