@@ -19,17 +19,9 @@
       <% if (errores.length) { %><p class="mensaje-error" role="alert"><%= errores.join(' ') %></p><% } %>
       <% if (exitos.length) { %><p class="mensaje-exito" role="status"><%= exitos.join(' ') %></p><% } %>
       <p class="subtitulo">Elige una contraseña nueva para tu cuenta.</p>
-      <input name="password" type="password" placeholder="Nueva contraseña" aria-label="Nueva contraseña" autocomplete="new-password" required>
+      <input name="password" type="password" placeholder="Nueva contraseña" aria-label="Nueva contraseña" autocomplete="new-password" minlength="8" required>
+      <p class="subtitulo">La contraseña debe tener al menos 8 caracteres.</p>
       <input name="confirmarPassword" type="password" placeholder="Confirmar contraseña" aria-label="Confirmar contraseña" autocomplete="new-password" required>
-      <div class="subtitulo" aria-label="Requisitos de la contraseña">
-        <p>La contraseña debe tener:</p>
-        <ul>
-          <li>Mínimo 8 caracteres</li>
-          <li>Al menos una letra mayúscula</li>
-          <li>Al menos una letra minúscula</li>
-          <li>Al menos un número</li>
-        </ul>
-      </div>
       <button class="btn-login" type="submit">Cambiar contraseña</button>
       <a href="/usuarios/login" class="login-link">Volver al inicio de sesión</a>
     </form>

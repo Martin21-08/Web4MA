@@ -23,7 +23,8 @@
       <input name="apellidos" id="registroApellido" type="text" placeholder="Apellido" aria-label="Apellido" required>
       <input name="correo" id="registroCorreo" type="email" placeholder="Correo electrónico" aria-label="Correo electrónico" required>
       <input name="telefono" id="registroTelefono" type="tel" placeholder="+56 9 1234 5678" aria-label="Teléfono">
-      <input name="password" id="registroPassword" type="password" placeholder="Contraseña" aria-label="Contraseña" required>
+      <input name="password" id="registroPassword" type="password" placeholder="Contraseña" aria-label="Contraseña" minlength="8" required>
+      <p class="subtitulo">La contraseña debe tener al menos 8 caracteres.</p>
       <button class="btn-register" type="submit" id="btnCrearCuenta">Crear cuenta</button>
       <a href="/usuarios/login" class="btn-secundario">Cancelar</a>
       <a href="/usuarios/login" class="login-link">¿Ya tienes cuenta? Inicia sesión</a>

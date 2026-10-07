@@ -60,6 +60,15 @@ const userController = {
                 return res.redirect("/usuarios/registro");
             }
 
+            // Exigir una contraseña de al menos 8 caracteres.
+            if (password.length < 8) {
+                req.flash(
+                    "error",
+                    "La contraseña debe tener al menos 8 caracteres."
+                );
+                return res.redirect("/usuarios/registro");
+            }
+
             if (telefono && !/^\+569\d{8}$/.test(telefono)) {
                 console.warn("[REGISTRO] Solicitud rechazada: formato de teléfono inválido.");
                 req.flash("error", "El teléfono debe tener formato +56 9 1234 5678");
@@ -419,17 +428,13 @@ const userController = {
             // VALIDAR CONTRASEÑA
             // =========================================
 
-            const passwordValida =
-                password.length >= 8 &&
-                /[A-Z]/.test(password) &&
-                /[a-z]/.test(password) &&
-                /[0-9]/.test(password);
+            const passwordValida = password.length >= 8;
 
             if (!passwordValida) {
 
                 req.flash(
                     "error",
-                    "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número."
+                    "La contraseña debe tener al menos 8 caracteres."
                 );
 
                 return res.redirect(
