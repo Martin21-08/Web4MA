@@ -1,4 +1,4 @@
-<%# Pantalla de acceso: correo y contraseña van a Express; Google y SMS usan Firebase. %>
+﻿<%# Pantalla de acceso: correo y contraseña van a Express; Google y SMS usan Firebase. %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -24,6 +24,8 @@
 
       <input type="password" name="password" placeholder="Contraseña" aria-label="Contraseña" id="Password" required>
 
+      <a href="/usuarios/recuperar" class="login-link">¿Olvidaste tu contraseña?</a>
+
       <button class="btn-login" type="submit" id="go">Entrar</button>
 
       <!-- El módulo firebase-auth.js escucha este id y abre el selector de Google. -->
@@ -34,7 +36,6 @@
       <input type="text" id="codigoSMS" placeholder="Código recibido por SMS" aria-label="Código recibido por SMS" inputmode="numeric" autocomplete="one-time-code" hidden>
       <div id="recaptcha-container"></div>
       
-      <button class="btn-secundario" type="button">Cancelar</button>
 
       <a href="/usuarios/registro" class="registrar-link">¿No tienes cuenta? Regístrate</a>
     </form>
@@ -96,3 +97,4 @@
   <script type="module" src="/Js/firebase-auth.js"></script>
 </body>
 </html>
+

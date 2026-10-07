@@ -46,4 +46,38 @@ router.post(
 );
 
 
+// ================================
+// RECUPERAR CONTRASEÑA
+// ================================
+
+// Mostrar formulario para ingresar correo
+router.get(
+    "/recuperar",
+    userController.mostrarRecuperarContrasena
+);
+
+// Recibir correo para solicitar recuperación
+router.post(
+    "/recuperar",
+    userController.solicitarRecuperacion
+);
+
+
+// ================================
+// RESTABLECER CONTRASEÑA
+// ================================
+
+// Mostrar formulario para crear nueva contraseña
+router.get(
+    "/restablecer/:token",
+    userController.mostrarRestablecerContrasena
+);
+
+// Recibir nueva contraseña
+router.post(
+    "/restablecer/:token",
+    userController.restablecerContrasena
+);
+
+
 module.exports = router;

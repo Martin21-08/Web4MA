@@ -1,4 +1,5 @@
-const bcrypt = require("bcrypt");
+﻿const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 const userModel = require("../models/userModel");
 
@@ -238,9 +239,347 @@ const userController = {
 
             return res.redirect("/usuarios/login");
         }
-    }
+    },
+    // =========================================
+    // MOSTRAR RECUPERACIÓN DE CONTRASEÑA
+    // =========================================
+
+    mostrarRecuperarContrasena: (req, res) => {
+        res.render("recuperar-contrasena");
+    },
+
+
+    // =========================================
+    // SOLICITAR RECUPERACIÓN DE CONTRASEÑA
+    // =========================================
+
+    solicitarRecuperacion: async (req, res) => {
+        try {
+
+            // Obtener el correo ingresado
+            const correo = String(req.body.correo || "")
+                .trim()
+                .toLowerCase();
+
+            // Verificar que haya escrito un correo
+            if (!correo) {
+                req.flash("error", "Debes ingresar tu correo.");
+                return res.redirect("/usuarios/recuperar");
+            }
+
+            // Buscar el usuario
+            const usuario = await userModel.buscarPorCorreo(correo);
+
+            /*
+             * Por seguridad NO decimos si el correo existe.
+             *
+             * Tanto si existe como si no existe,
+             * mostramos el mismo mensaje.
+             */
+
+            if (!usuario) {
+                req.flash(
+                    "success",
+                    "Si el correo está registrado, recibirás un enlace para restablecer tu contraseña."
+                );
+
+                return res.redirect("/usuarios/recuperar");
+            }
+
+            // =========================================
+            // GENERAR TOKEN
+            // =========================================
+
+            // Token aleatorio que irá dentro del enlace del correo
+            const token = crypto.randomBytes(32).toString("hex");
+
+            // Crear hash del token para guardarlo en MySQL
+            const tokenHash = crypto
+                .createHash("sha256")
+                .update(token)
+                .digest("hex");
+
+            // El enlace tendrá una duración de 1 hora
+            const fechaExpiracion = new Date(
+                Date.now() + 60 * 60 * 1000
+            );
+
+            // Guardar el hash en la base de datos
+            await userModel.guardarTokenRecuperacion({
+                id_usuario: usuario.id_usuario,
+                token_hash: tokenHash,
+                fecha_expiracion: fechaExpiracion
+            });
+
+            /*
+             * IMPORTANTE:
+             * El token original NO se guarda en MySQL.
+             *
+             * El token original será utilizado para crear
+             * el enlace que llegará al correo.
+             */
+
+            console.log("[RECUPERACIÓN] Token generado para:", correo);
+
+            // Por ahora dejamos el token en consola para probar.
+            // Después lo reemplazaremos por el envío real a Gmail.
+            console.log(
+                "[RECUPERACIÓN] Enlace:",
+                `http://localhost:3000/usuarios/restablecer/${token}`
+            );
+
+            // Mensaje genérico
+            req.flash(
+                "success",
+                "Si el correo está registrado, recibirás un enlace para restablecer tu contraseña."
+            );
+
+            return res.redirect("/usuarios/recuperar");
+
+        } catch (error) {
+
+            console.error(
+                "[RECUPERACIÓN] Error:",
+                error.code || "UNKNOWN"
+            );
+
+            req.flash(
+                "error",
+                "Ocurrió un error. Inténtalo nuevamente."
+            );
+
+            return res.redirect("/usuarios/recuperar");
+        }
+    },
+
+
+    // =========================================
+    // MOSTRAR RESTABLECER CONTRASEÑA
+    // =========================================
+
+    mostrarRestablecerContrasena: async (req, res) => {
+        try {
+
+            // Obtener token desde la URL
+            const token = req.params.token;
+
+            // Crear el mismo hash que guardamos en MySQL
+            const tokenHash = crypto
+                .createHash("sha256")
+                .update(token)
+                .digest("hex");
+
+            // Buscar token
+            const tokenRecuperacion =
+                await userModel.buscarTokenRecuperacion(tokenHash);
+
+            // Si no existe o ya fue utilizado
+            if (!tokenRecuperacion) {
+                return res.render(
+                    "recuperar-contrasena",
+                    {
+                        error: "El enlace no es válido o ya fue utilizado."
+                    }
+                );
+            }
+
+            // Verificar si expiró
+            if (
+                new Date(tokenRecuperacion.fecha_expiracion) < new Date()
+            ) {
+                return res.render(
+                    "recuperar-contrasena",
+                    {
+                        error: "El enlace ha expirado. Solicita uno nuevo."
+                    }
+                );
+            }
+
+            // Token válido
+            return res.render(
+                "restablecer-contrasena",
+                {
+                    token
+                }
+            );
+
+        } catch (error) {
+
+            console.error(
+                "[RESTABLECER] Error:",
+                error.code || "UNKNOWN"
+            );
+
+            return res.render(
+                "recuperar-contrasena",
+                {
+                    error: "Ocurrió un error. Inténtalo nuevamente."
+                }
+            );
+        }
+    },
+
+    // =========================================
+    // RESTABLECER CONTRASEÑA
+    // =========================================
+
+    restablecerContrasena: async (req, res) => {
+
+        try {
+
+            // Obtener el token desde la URL
+            const token = req.params.token;
+
+            // Obtener las contraseñas del formulario
+            const password = String(req.body.password || "");
+
+            const confirmarPassword = String(
+                req.body.confirmarPassword || ""
+            );
+
+            // =========================================
+            // VALIDAR CONTRASEÑA
+            // =========================================
+
+            const passwordValida =
+                password.length >= 8 &&
+                /[A-Z]/.test(password) &&
+                /[a-z]/.test(password) &&
+                /[0-9]/.test(password);
+
+            if (!passwordValida) {
+
+                req.flash(
+                    "error",
+                    "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número."
+                );
+
+                return res.redirect(
+                    `/usuarios/restablecer/${token}`
+                );
+            }
+
+            // =========================================
+            // COMPARAR CONTRASEÑAS
+            // =========================================
+
+            if (password !== confirmarPassword) {
+
+                req.flash(
+                    "error",
+                    "Las contraseñas no coinciden."
+                );
+
+                return res.redirect(
+                    `/usuarios/restablecer/${token}`
+                );
+            }
+
+            // =========================================
+            // BUSCAR TOKEN
+            // =========================================
+
+            const tokenHash = crypto
+                .createHash("sha256")
+                .update(token)
+                .digest("hex");
+
+            const tokenRecuperacion =
+                await userModel.buscarTokenRecuperacion(tokenHash);
+
+            // Si el token no existe o ya fue utilizado
+            if (!tokenRecuperacion) {
+
+                req.flash(
+                    "error",
+                    "El enlace no es válido o ya fue utilizado. Solicita uno nuevo."
+                );
+
+                return res.redirect(
+                    "/usuarios/recuperar"
+                );
+            }
+
+            // =========================================
+            // VERIFICAR EXPIRACIÓN
+            // =========================================
+
+            if (
+                new Date(tokenRecuperacion.fecha_expiracion)
+                < new Date()
+            ) {
+
+                req.flash(
+                    "error",
+                    "El enlace ha expirado. Solicita uno nuevo."
+                );
+
+                return res.redirect(
+                    "/usuarios/recuperar"
+                );
+            }
+
+            // =========================================
+            // ENCRIPTAR NUEVA CONTRASEÑA
+            // =========================================
+
+            const nuevaContrasenaHash =
+                await bcrypt.hash(password, 10);
+
+            // =========================================
+            // ACTUALIZAR CONTRASEÑA EN MYSQL
+            // =========================================
+
+            await userModel.actualizarContrasena(
+                tokenRecuperacion.id_usuario,
+                nuevaContrasenaHash
+            );
+
+            // =========================================
+            // MARCAR TOKEN COMO UTILIZADO
+            // =========================================
+
+            await userModel.marcarTokenUsado(
+                tokenRecuperacion.id_token_recuperacion
+            );
+
+            // =========================================
+            // MENSAJE DE ÉXITO
+            // =========================================
+
+            req.flash(
+                "success",
+                "Tu contraseña fue actualizada correctamente. Ahora puedes iniciar sesión."
+            );
+
+            return res.redirect(
+                "/usuarios/login"
+            );
+
+        } catch (error) {
+
+            console.error(
+                "[RESTABLECER] Error:",
+                error.code || "UNKNOWN"
+            );
+
+            req.flash(
+                "error",
+                "Ocurrió un error al cambiar la contraseña. Inténtalo nuevamente."
+            );
+
+            return res.redirect(
+                "/usuarios/recuperar"
+            );
+        }
+    },
+
+
+
 
 };
 
 
 module.exports = userController;
+
+

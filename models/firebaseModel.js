@@ -40,6 +40,7 @@ async function buscarPorCorreo(correo) {
             apellidos,
             correo,
             telefono,
+            contrasena_hash,
             google_id,
             id_suscripcion,
             tokens_disponibles,

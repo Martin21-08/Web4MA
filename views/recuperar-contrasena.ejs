@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/Img/icono.png">
+  <link rel="stylesheet" href="/Css/Style.css">
+  <title>Recuperar contraseña</title>
+</head>
+<body>
+  <main class="modal-fondo">
+    <form action="/usuarios/recuperar" method="POST" class="modal-caja">
+      <div class="icono-cocina">
+        <img src="/Img/54479.jpg" alt="Logo de CookIQ">
+      </div>
+      <h2>Recuperar contraseña</h2>
+      <% const errores = typeof error !== 'undefined' && error ? (Array.isArray(error) ? error : [error]) : []; %>
+      <% const exitos = typeof success !== 'undefined' && success ? (Array.isArray(success) ? success : [success]) : []; %>
+      <% if (errores.length) { %><p class="mensaje-error" role="alert"><%= errores.join(' ') %></p><% } %>
+      <% if (exitos.length) { %><p class="mensaje-exito" role="status"><%= exitos.join(' ') %></p><% } %>
+      <p class="subtitulo">Ingresa el correo asociado a tu cuenta para solicitar un enlace de recuperación.</p>
+      <input name="correo" type="email" placeholder="Correo electrónico" aria-label="Correo electrónico" autocomplete="email" required>
+      <button class="btn-login" type="submit">Solicitar recuperación</button>
+      <a href="/usuarios/login" class="login-link">Volver al inicio de sesión</a>
+    </form>
+  </main>
+</body>
+</html>
