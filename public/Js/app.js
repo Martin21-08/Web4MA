@@ -258,9 +258,84 @@ const ingredientesDisponibles = [
 // Carga los datos guardados y permite actualizar la información personal.
 // ============================================================================
 
-const iniciarPerfil = () => {
+const iniciarPerfil = async () => {
   const formulario = obtenerElemento('formPerfil');
   if (!formulario) return;
+
+  // Carga el catálogo una vez y comparte sus opciones entre perfil y modal.
+  let catalogos;
+  try {
+    const respuesta = await fetch('/catalogos');
+    if (!respuesta.ok) throw new Error('No se pudieron cargar los catálogos.');
+    catalogos = await respuesta.json();
+  } catch (error) {
+    console.error('Error al cargar alergias e intolerancias:', error);
+    ['opcionesAlergias', 'opcionesAlergiasModal'].forEach(id => {
+      obtenerElemento(id).textContent = 'No se pudieron cargar las alergias.';
+    });
+    ['opcionesIntolerancias', 'opcionesIntoleranciasModal'].forEach(id => {
+      obtenerElemento(id).textContent = 'No se pudieron cargar las intolerancias.';
+    });
+    return;
+  }
+
+  const pintarCatalogo = (contenedorId, nombreGrupo, elementos, idCampo) => {
+    const contenedor = obtenerElemento(contenedorId);
+    elementos.forEach(elemento => {
+      const etiqueta = document.createElement('label');
+      const casilla = document.createElement('input');
+      casilla.type = 'checkbox';
+      casilla.name = nombreGrupo;
+      // Guardamos el nombre para conservar compatibilidad con localStorage existente.
+      casilla.value = elemento.nombre;
+      casilla.dataset.catalogoId = elemento[idCampo];
+      etiqueta.append(casilla, document.createTextNode(` ${elemento.nombre}`));
+      contenedor.appendChild(etiqueta);
+    });
+  };
+
+  pintarCatalogo('opcionesAlergias', 'alergias', catalogos.alergias, 'id_alergia');
+  pintarCatalogo('opcionesAlergiasModal', 'alergias', catalogos.alergias, 'id_alergia');
+  pintarCatalogo('opcionesIntolerancias', 'intolerancias', catalogos.intolerancias, 'id_intolerancia');
+  pintarCatalogo('opcionesIntoleranciasModal', 'intolerancias', catalogos.intolerancias, 'id_intolerancia');
+
+  // Recupera de MySQL las selecciones de la sesión actual y marca ambos formularios por ID.
+  try {
+    const respuestaPreferencias = await fetch('/preferencias');
+    if (!respuestaPreferencias.ok) throw new Error('No se pudieron recuperar las preferencias.');
+    const preferencias = await respuestaPreferencias.json();
+    const alergiasSeleccionadas = new Set(preferencias.alergias.map(String));
+    const intoleranciasSeleccionadas = new Set(preferencias.intolerancias.map(String));
+
+    document.querySelectorAll(
+      '#formPerfil input[name="alergias"], #formPersonalizacionPerfil input[name="alergias"]'
+    ).forEach(casilla => {
+      casilla.checked = alergiasSeleccionadas.has(casilla.dataset.catalogoId);
+    });
+    document.querySelectorAll(
+      '#formPerfil input[name="intolerancias"], #formPersonalizacionPerfil input[name="intolerancias"]'
+    ).forEach(casilla => {
+      casilla.checked = intoleranciasSeleccionadas.has(casilla.dataset.catalogoId);
+    });
+  } catch (error) {
+    console.error('Error al recuperar alergias e intolerancias:', error);
+  }
+
+  // Envía a MySQL los IDs seleccionados en el formulario indicado.
+  const guardarPreferenciasEnBD = async formularioPreferencias => {
+    const alergias = [...formularioPreferencias.querySelectorAll('input[name="alergias"]:checked')]
+      .map(casilla => Number(casilla.dataset.catalogoId));
+    const intolerancias = [...formularioPreferencias.querySelectorAll('input[name="intolerancias"]:checked')]
+      .map(casilla => Number(casilla.dataset.catalogoId));
+
+    const respuesta = await fetch('/preferencias', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alergias, intolerancias })
+    });
+    if (!respuesta.ok) throw new Error('No se pudieron guardar las preferencias en la base de datos.');
+    return respuesta.json();
+  };
 
   const campos = {
     nombre: 'perfilNombre',
@@ -269,17 +344,9 @@ const iniciarPerfil = () => {
     telefono: 'perfilTelefono'
   };
   const datos = obtenerPerfilActivo() || {};
-  const alergias = datos.alergias || [];
-  const intolerancias = datos.intolerancias || alergias.filter(opcion => ['Gluten', 'Lactosa'].includes(opcion));
 
   Object.entries(campos).forEach(([clave, id]) => {
     obtenerElemento(id).value = datos[clave] || '';
-  });
-  document.querySelectorAll('#formPerfil input[name="alergias"]').forEach(casilla => {
-    casilla.checked = alergias.includes(casilla.value);
-  });
-  document.querySelectorAll('#formPerfil input[name="intolerancias"]').forEach(casilla => {
-    casilla.checked = intolerancias.includes(casilla.value);
   });
 
   const modalPersonalizacion = obtenerElemento('modalPersonalizacionPerfil');
@@ -294,28 +361,37 @@ const iniciarPerfil = () => {
   if (modalPersonalizacion && formularioPersonalizacion && abrirPersonalizacionPerfil) {
     abrirPersonalizacionPerfil.onclick = () => {
       formularioPersonalizacion.querySelectorAll('input[name="alergias"], input[name="intolerancias"]').forEach(casilla => {
-        casilla.checked = (datos[casilla.name] || []).includes(casilla.value);
+        const casillaPerfil = formulario.querySelector(
+          `input[name="${casilla.name}"][data-catalogo-id="${casilla.dataset.catalogoId}"]`
+        );
+        casilla.checked = Boolean(casillaPerfil?.checked);
       });
       modalPersonalizacion.classList.add('abierto');
     };
 
     obtenerElemento('cerrarPersonalizacionPerfil').onclick = () => modalPersonalizacion.classList.remove('abierto');
-    formularioPersonalizacion.onsubmit = evento => {
+    formularioPersonalizacion.onsubmit = async evento => {
       evento.preventDefault();
-      const perfilActualizado = guardarPerfilActivo({
-        ...datos,
-        alergias: [...formularioPersonalizacion.querySelectorAll('input[name="alergias"]:checked')].map(casilla => casilla.value),
-        intolerancias: [...formularioPersonalizacion.querySelectorAll('input[name="intolerancias"]:checked')].map(casilla => casilla.value),
-        personalizacionCompleta: true
-      });
-      Object.assign(datos, perfilActualizado);
-      sincronizarOpcionesPerfil(perfilActualizado);
-      modalPersonalizacion.classList.remove('abierto');
-      alert('Alergias e intolerancias guardadas correctamente.');
+      try {
+        await guardarPreferenciasEnBD(formularioPersonalizacion);
+        const perfilActualizado = guardarPerfilActivo({
+          ...datos,
+          alergias: [...formularioPersonalizacion.querySelectorAll('input[name="alergias"]:checked')].map(casilla => casilla.value),
+          intolerancias: [...formularioPersonalizacion.querySelectorAll('input[name="intolerancias"]:checked')].map(casilla => casilla.value),
+          personalizacionCompleta: true
+        });
+        Object.assign(datos, perfilActualizado);
+        sincronizarOpcionesPerfil(perfilActualizado);
+        modalPersonalizacion.classList.remove('abierto');
+        alert('Alergias e intolerancias guardadas correctamente.');
+      } catch (error) {
+        console.error('Error al guardar las preferencias:', error);
+        alert('No se pudieron guardar las alergias e intolerancias.');
+      }
     };
   }
 
-  const guardarCambios = () => {
+  const guardarCambios = async () => {
     const perfilActualizado = {
       ...datos,
       ...Object.fromEntries(
@@ -329,18 +405,25 @@ const iniciarPerfil = () => {
       intolerancias: [...document.querySelectorAll('#formPerfil input[name="intolerancias"]:checked')]
         .map(casilla => casilla.value)
     };
+    await guardarPreferenciasEnBD(formulario);
     guardarPerfilActivo(perfilActualizado);
+    Object.assign(datos, perfilActualizado);
     return perfilActualizado;
   };
 
-  formulario.onsubmit = evento => {
+  formulario.onsubmit = async evento => {
     evento.preventDefault();
-    guardarCambios();
-    alert('Cambios guardados correctamente.');
+    try {
+      await guardarCambios();
+      alert('Cambios guardados correctamente.');
+    } catch (error) {
+      console.error('Error al guardar los cambios:', error);
+      alert('No se pudieron guardar los cambios.');
+    }
   };
 
   obtenerElemento('cerrarSesion').onclick = () => {
-    guardarCambios();
+    // Cerrar sesión no debe enviar las casillas visibles ni reemplazar preferencias en MySQL.
     localStorage.removeItem('miCocinaRecetasGeneradas');
     localStorage.removeItem('miCocinaUsuarioActivo');
     window.location.href = '/';
