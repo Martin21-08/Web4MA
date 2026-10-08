@@ -862,6 +862,22 @@ const iniciarDespensa = () => {
   pintar();
 };
 
+const iniciarVisibilidadContrasena = () => {
+  document.querySelectorAll('.campo-contrasena').forEach(campo => {
+    const entrada = campo.querySelector('input[type="password"]');
+    const boton = campo.querySelector('.alternar-contrasena');
+    if (!entrada || !boton) return;
+
+    boton.addEventListener('click', () => {
+      const mostrar = entrada.type === 'password';
+      entrada.type = mostrar ? 'text' : 'password';
+      boton.setAttribute('aria-pressed', String(mostrar));
+      boton.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+      boton.title = mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña';
+    });
+  });
+};
+
 // Cada inicializador detecta si la pantalla actual contiene sus elementos.
 // Así un único archivo JavaScript puede compartirse entre todas las vistas.
 iniciarSidebar();
@@ -871,4 +887,5 @@ iniciarFavoritos();
 iniciarHistorial();
 iniciarDespensa();
 iniciarLoginSms();
+iniciarVisibilidadContrasena();
 // Los formularios clásicos usan sus POST nativos para llegar a las rutas Express y MySQL.

@@ -20,8 +20,16 @@
       <% if (exitos.length) { %><p class="mensaje-exito" role="status"><%= exitos.join(' ') %></p><% } %>
       <p class="subtitulo">Elige una contraseña nueva para tu cuenta.</p>
       <input name="password" type="password" placeholder="Nueva contraseña" aria-label="Nueva contraseña" autocomplete="new-password" minlength="8" required>
+      <button class="alternar-contrasena" type="button" aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar contraseña">
+        <svg class="icono-ojo" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg class="icono-ojo-oculto" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a15.8 15.8 0 0 1-3.1 3.8M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.4 10.4 0 0 0 3.2-.5"/></svg>
+      </button>
       <p class="subtitulo">La contraseña debe tener al menos 8 caracteres.</p>
       <input name="confirmarPassword" type="password" placeholder="Confirmar contraseña" aria-label="Confirmar contraseña" autocomplete="new-password" required>
+      <button class="alternar-contrasena" type="button" aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar contraseña">
+        <svg class="icono-ojo" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg class="icono-ojo-oculto" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a15.8 15.8 0 0 1-3.1 3.8M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.4 10.4 0 0 0 3.2-.5"/></svg>
+      </button>
       <button class="btn-login" type="submit">Cambiar contraseña</button>
       <a href="/usuarios/login" class="login-link">Volver al inicio de sesión</a>
     </form>
