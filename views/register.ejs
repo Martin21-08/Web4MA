@@ -1,4 +1,3 @@
-<%# Formulario de alta: los nombres de cada campo se envían en el POST a /usuarios/registro. %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -10,7 +9,6 @@
 </head>
 <body>
   <main class="modal-fondo">
-    <%# Express recibe estos campos, el controlador los valida y el modelo los guarda en MySQL. %>
     <form action="/usuarios/registro" method="POST" class="modal-caja" id="formRegistro">
       <div class="icono-cocina">
         <img src="/Img/54479.jpg" alt="Logo de CookIQ">
@@ -31,12 +29,13 @@
         </button>
       </div>
       <p class="subtitulo">La contraseña debe tener al menos 8 caracteres.</p>
+      <%# La validación se realiza en el servidor para mostrar un flash si no se acepta. %>
+      <label class="aceptar-terminos"><input type="checkbox" name="Terminos" value="Terminos"> <span>Acepto los <a href="/usuarios/terminos" target="_blank" rel="noopener noreferrer">términos y condiciones</a></span></label>
       <button class="btn-register" type="submit" id="btnCrearCuenta">Crear cuenta</button>
       <a href="/usuarios/login" class="btn-secundario">Cancelar</a>
       <a href="/usuarios/login" class="login-link">¿Ya tienes cuenta? Inicia sesión</a>
     </form>
   </main>
-  <%- include('Partials/profile-onboarding') %>
   <script src="/Js/app.js"></script>
 </body>
 </html>

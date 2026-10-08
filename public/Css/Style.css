@@ -54,6 +54,8 @@ body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; b
     font-size: 14px; 
 }
 
+.mensaje-error { margin: 0; padding: 10px 12px; border: 1px solid #e6a4a4; border-radius: 10px; background: #fff0f0; color: #8c2525; font-size: 14px; }
+
 .modal-caja input { 
     width: 100%; 
     padding: 13px 15px; 
@@ -69,6 +71,9 @@ body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; b
     border-color: var(--cookiq-purple); 
     box-shadow: 0 0 0 3px rgba(112, 75, 158, .16); 
 }
+
+.modal-caja .aceptar-terminos { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text); font-size: 13px; }
+.modal-caja .aceptar-terminos input[type="checkbox"] { width: auto; margin: 0; padding: 0; accent-color: var(--cookiq-purple); }
 
 .campo-contrasena { position: relative; width: 100%; }
 .campo-contrasena input { padding-right: 48px; }
@@ -134,6 +139,18 @@ body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; b
 
 @media (max-width: 480px) { .modal-caja { padding: 34px 24px 24px; } }
 
+/* Página de términos: paneles independientes y legibles en escritorio y móvil. */
+.terminos-fondo { min-height: 100vh; padding: 48px 20px; background: linear-gradient(135deg, rgba(77, 48, 91, .58), rgba(248, 220, 232, .48)); }
+.terminos-contenido { width: min(100%, 900px); margin: 0 auto; padding: clamp(24px, 5vw, 48px); border: 1px solid rgba(255, 255, 255, .9); border-radius: 24px; background: rgba(255, 247, 250, .97); box-shadow: 0 20px 50px rgba(58, 38, 30, .3); }
+.terminos-encabezado { margin-bottom: 28px; text-align: center; }
+.terminos-encabezado h1 { margin: 0; color: var(--text); font-size: clamp(30px, 5vw, 42px); }
+.terminos-encabezado p { margin: 8px 0 0; color: #806e60; }
+.terminos-secciones { display: grid; gap: 16px; }
+.terminos-seccion { padding: 20px; border: 1px solid #ecd9e8; border-radius: 16px; background: #fff; }
+.terminos-seccion h2 { margin: 0 0 8px; color: var(--cookiq-purple); font-size: 20px; }
+.terminos-seccion p { margin: 0; color: var(--text); line-height: 1.7; }
+.terminos-volver { display: inline-block; margin-top: 24px; color: var(--cookiq-purple); font-weight: 800; text-decoration: none; }
+.terminos-volver:hover { text-decoration: underline; }
 
 /* ========================================================================
    PANTALLA DE INICIO: estructura principal, fondo y barra lateral

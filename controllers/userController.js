@@ -4,6 +4,23 @@ const crypto = require("crypto");
 const userModel = require("../models/userModel");
 const emailService = require("../services/emailService");
 
+// Traduce fallos de conexión frecuentes a instrucciones útiles para la interfaz.
+const mensajeErrorBaseDatos = error => {
+    if (error.code === "ER_ACCESS_DENIED_ERROR") {
+        return "La base de datos rechazó el acceso. Revisa MYSQL_USER y MYSQL_PASSWORD en .env.";
+    }
+
+    if (error.code === "ER_BAD_DB_ERROR") {
+        return "La base de datos configurada no existe. Revisa MYSQL_DB en .env.";
+    }
+
+    if (error.code === "ECONNREFUSED") {
+        return "No se pudo conectar con MySQL. Revisa que el servidor esté activo y verifica MYSQL_HOST y MYSQL_PUERTO.";
+    }
+
+    return null;
+};
+
 
 const userController = {
 
@@ -32,6 +49,7 @@ const userController = {
             const correo = String(req.body.correo || "").trim().toLowerCase();
             const password = String(req.body.password || "");
             const telefonoIngresado = String(req.body.telefono || "").trim();
+            const terminosAceptados = ["Terminos", "on", true].includes(req.body.Terminos);
             const telefono = telefonoIngresado
                 ? telefonoIngresado.replace(/[\s()-]/g, "")
                 : null;
@@ -47,6 +65,13 @@ const userController = {
                 });
             }
 
+
+            // El servidor comprueba la aceptación porque el navegador no debe bloquear el POST:
+            // así puede mostrar el mensaje flash si la casilla no está seleccionada.
+            if (!terminosAceptados) {
+                req.flash("error", "Debes aceptar los términos y condiciones para registrarte.");
+                return res.redirect("/usuarios/registro");
+            }
 
             // 2. Validar los campos requeridos antes de consultar la base de datos.
             if (!nombres || !apellidos || !correo || !password) {
@@ -125,14 +150,21 @@ const userController = {
 
         } catch (error) {
 
-            // No imprimir el objeto completo para evitar exponer datos de la consulta.
-            console.error("[REGISTRO] Error al guardar usuario:", error.code || "UNKNOWN");
+            // Registrar el detalle técnico del error sin incluir los datos enviados por el usuario.
+            console.error("[REGISTRO] Error al guardar usuario:", {
+                code: error.code || "UNKNOWN",
+                sqlState: error.sqlState || "UNKNOWN",
+                message: error.message || "Sin detalle"
+            });
 
 
             // Mostrar mensaje al usuario
             req.flash(
                 "error",
-                "Ocurrió un error al registrar el usuario"
+                error.code === "ER_DUP_ENTRY"
+                    ? "El correo o teléfono ya está registrado."
+                    : mensajeErrorBaseDatos(error) ||
+                        "Ocurrió un error al guardar la cuenta. Inténtalo nuevamente."
             );
 
 
@@ -240,11 +272,15 @@ const userController = {
 
         } catch (error) {
 
-            console.error(error);
+            console.error("[LOGIN] Error al iniciar sesión:", {
+                code: error.code || "UNKNOWN",
+                message: error.message || "Sin detalle"
+            });
 
             req.flash(
                 "error",
-                "Ocurrió un error al iniciar sesión"
+                mensajeErrorBaseDatos(error) ||
+                    "Ocurrió un error al iniciar sesión"
             );
 
             return res.redirect("/usuarios/login");
@@ -564,5 +600,3 @@ const userController = {
 
 
 module.exports = userController;
-
-
