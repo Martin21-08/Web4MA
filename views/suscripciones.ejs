@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/Img/icono.png">
+  <title>Suscripciones | CookIQ</title>
+  <link rel="stylesheet" href="/Css/Style.css">
+</head>
+<body>
+  <div class="inicio-app">
+    <%- include('Partials/Sidebar') %>
+    <main class="inicio-contenido">
+      <header class="inicio-encabezado">
+        <h1>Planes de CookIQ</h1>
+        <p>Elige el plan que mejor acompañe tu cocina.</p>
+      </header>
+
+      <p class="suscripciones-intro">Los planes de pago estarán disponibles próximamente. Por ahora, puedes seguir usando CookIQ con el plan Gratis.</p>
+
+      <section class="suscripciones-grid" aria-label="Planes disponibles">
+        <article class="suscripcion-tarjeta <%= typeof user !== 'undefined' && user && user.id_suscripcion === 1 ? 'suscripcion-actual' : '' %>">
+          <% if (typeof user !== 'undefined' && user && user.id_suscripcion === 1) { %>
+            <span class="suscripcion-etiqueta">Plan actual</span>
+          <% } %>
+          <h2>Gratis</h2>
+          <p class="suscripcion-precio">$0 <small>CLP</small></p>
+          <p class="suscripcion-descripcion">Accede a CookIQ con el plan gratuito.</p>
+          <button class="boton-generar suscripcion-accion" type="button" <%= typeof user !== 'undefined' && user && user.id_suscripcion === 1 ? 'disabled' : '' %>>Plan Gratis</button>
+        </article>
+
+        <article class="suscripcion-tarjeta">
+          <h2>Essential</h2>
+          <p class="suscripcion-precio">$7.990 <small>CLP al mes</small></p>
+          <p class="suscripcion-descripcion">Un plan de pago para ampliar tu experiencia en CookIQ. Sus características se informarán cuando estén definidas.</p>
+          <button class="boton-generar suscripcion-accion" type="button" data-plan-proximo>Próximamente</button>
+        </article>
+
+        <article class="suscripcion-tarjeta">
+          <h2>Premium</h2>
+          <p class="suscripcion-precio">$15.990 <small>CLP al mes</small></p>
+          <p class="suscripcion-descripcion">La opción premium de CookIQ. Sus características se informarán cuando estén definidas.</p>
+          <button class="boton-generar suscripcion-accion" type="button" data-plan-proximo>Próximamente</button>
+        </article>
+      </section>
+      <p class="suscripcion-aviso" id="avisoSuscripcion" role="status" aria-live="polite"></p>
+      <a class="suscripcion-volver" href="/lobby">Volver a mi cocina</a>
+    </main>
+  </div>
+  <script>
+    document.querySelectorAll('[data-plan-proximo]').forEach((boton) => {
+      boton.addEventListener('click', () => {
+        document.getElementById('avisoSuscripcion').textContent = 'La contratación estará disponible próximamente.';
+      });
+    });
+  </script>
+</body>
+</html>

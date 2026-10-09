@@ -11,6 +11,7 @@ router.get('/despensa', viewsController.mostrarDespensa);
 router.get('/favoritos', viewsController.mostrarFavoritos);
 router.get('/historial', viewsController.mostrarHistorial);
 router.get('/perfil', viewsController.mostrarPerfil);
+router.get('/suscripciones', viewsController.mostrarSuscripciones);
 // El enlace de registro solicita esta URL; el controlador responde con la vista Terminos.
 router.get('/usuarios/terminos', viewsController.mostrarTerminos);
 

@@ -162,11 +162,30 @@ body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; b
 .inicio-marca { width: 201px; height: 112px; margin: 0 auto 38px; overflow: hidden; border: 4px solid #fff7fa; border-radius: 18px; background: var(--cookiq-pink); box-shadow: 0 10px 22px rgba(44, 25, 75, .28); }
 .inicio-marca img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .inicio-menu { display: grid; gap: 8px; }
-.inicio-menu a { padding: 12px 14px; border-radius: 12px; color: #fff2f8; font-weight: 700; text-decoration: none; }
+.inicio-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; color: #fff2f8; font-weight: 700; text-decoration: none; }
+.icono-menu { width: 20px; height: 20px; flex: 0 0 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .inicio-menu a:hover, .inicio-menu a.activa { background: linear-gradient(135deg, rgba(248, 220, 232, .28), rgba(242, 139, 43, .38)); color: white; }
 .inicio-contenido { flex: 1; min-width: 0; width: calc(100% - 235px); margin-left: 235px; padding: 45px clamp(24px, 5vw, 70px); }
 .inicio-encabezado h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); }
 .inicio-encabezado p { color: #806e60; margin: 8px 0 28px; }
+.inicio-encabezado-con-plan { position: relative; padding-right: 190px; }
+.boton-mejorar-plan { position: absolute; top: 0; right: 0; display: inline-flex; align-items: center; gap: 8px; padding: 10px 15px; border: 1px solid rgba(112, 75, 158, .2); border-radius: 12px; background: linear-gradient(135deg, var(--cookiq-purple), var(--cookiq-orange)); color: white; font-weight: 800; text-decoration: none; box-shadow: 0 6px 14px rgba(112, 75, 158, .18); }
+.icono-plan { width: 18px; height: 18px; flex: 0 0 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.boton-mejorar-plan:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(112, 75, 158, .28); }
+.boton-mejorar-plan:focus-visible { outline: 3px solid var(--cookiq-orange); outline-offset: 3px; }
+.suscripciones-intro { margin: 0 0 28px; color: #806e60; }
+.suscripciones-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: stretch; }
+.suscripcion-tarjeta { display: flex; flex-direction: column; padding: 24px; border: 1px solid #efdcd1; border-radius: 20px; background: rgba(255, 255, 255, .94); box-shadow: 0 10px 22px rgba(118, 76, 57, .08); }
+.suscripcion-tarjeta h2 { margin: 0 0 10px; color: var(--cookiq-purple); }
+.suscripcion-precio { margin: 0 0 12px; color: var(--text); font-size: clamp(24px, 3vw, 32px); font-weight: 800; }
+.suscripcion-precio small { font-size: 14px; font-weight: 700; }
+.suscripcion-descripcion { flex: 1; color: #806e60; line-height: 1.55; }
+.suscripcion-accion { width: 100%; margin-top: 12px; }
+.suscripcion-actual { border: 2px solid var(--cookiq-purple); }
+.suscripcion-etiqueta { align-self: flex-start; margin-bottom: 12px; padding: 5px 10px; border-radius: 999px; background: var(--cookiq-pink); color: var(--cookiq-purple); font-size: 12px; font-weight: 800; }
+.suscripcion-aviso { min-height: 1.5em; margin: 16px 0 0; color: var(--cookiq-purple); font-weight: 800; text-align: center; }
+.suscripcion-volver { display: inline-block; margin-top: 24px; color: var(--cookiq-purple); font-weight: 800; text-decoration: none; }
+.suscripcion-volver:hover { text-decoration: underline; }
 
 
 /* ------------------------------------------------------------------------
@@ -293,7 +312,7 @@ body { margin: 0; min-height: 100vh; font-family: 'Nunito', Arial, sans-serif; b
 .filtro-opcion.seleccionada { border-color: var(--cookiq-purple); background: var(--cookiq-pink); color: var(--cookiq-purple); }
 .acciones-filtro { display: flex; justify-content: end; gap: 10px; margin-top: 24px; }
 
-@media (max-width: 850px) { .inicio-sidebar { width: 76px; padding: 24px 10px; } .inicio-marca { width: 56px; height: 56px; margin: 0 auto 38px; border-width: 3px; border-radius: 14px; } .inicio-marca img { object-fit: contain; } .inicio-menu a { padding: 13px; font-size: 0; text-align: center; } .inicio-menu a::first-letter { font-size: 19px; } .inicio-contenido { width: calc(100% - 76px); margin-left: 76px; } .recetas-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 850px) { .inicio-sidebar { width: 76px; padding: 24px 10px; } .inicio-marca { width: 56px; height: 56px; margin: 0 auto 38px; border-width: 3px; border-radius: 14px; } .inicio-marca img { object-fit: contain; } .inicio-menu a { justify-content: center; padding: 13px; } .inicio-menu a span { display: none; } .inicio-contenido { width: calc(100% - 76px); margin-left: 76px; } .recetas-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 570px) { .inicio-contenido { padding: 30px 16px; } .buscador-linea { align-items: stretch; } .recetas-grid { grid-template-columns: 1fr; } .opciones-busqueda { align-items: stretch; } .boton-generar { width: 100%; } }
 
 
