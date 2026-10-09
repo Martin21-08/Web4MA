@@ -492,7 +492,7 @@ const iniciarLobby = () => {
   let tiempo = '30 min';
   let porciones = '2';
   let dificultad = 'Todas';
-
+  let recetasActuales = [];
   const pintarIngredientes = () => {
     ingredientesElegidos.innerHTML = elegidos.map((ingrediente, indice) => `
       <span class="chip-ingrediente">
@@ -584,7 +584,7 @@ const iniciarLobby = () => {
     comentario.texto = textoNuevo.trim();
     guardar('miCocinaComentarios', comentarios);
     const lista = document.getElementById('listaComentarios');
-    const receta = recetasDisponibles.find(item => item.nombre === nombreReceta);
+    const receta = recetasActuales.find(item => item.nombre === nombreReceta) || favoritos().find(item => item.nombre === nombreReceta) || leer('miCocinaHistorialRecetas').find(item => item.nombre === nombreReceta) || recetasDisponibles.find(item => item.nombre === nombreReceta);
     if (lista && receta) lista.innerHTML = pintarComentarios(receta);
   };
 
@@ -595,22 +595,31 @@ const iniciarLobby = () => {
     comentarios[nombreReceta].splice(indice, 1);
     guardar('miCocinaComentarios', comentarios);
     const lista = document.getElementById('listaComentarios');
-    const receta = recetasDisponibles.find(item => item.nombre === nombreReceta);
+    const receta = recetasActuales.find(item => item.nombre === nombreReceta) || favoritos().find(item => item.nombre === nombreReceta) || leer('miCocinaHistorialRecetas').find(item => item.nombre === nombreReceta) || recetasDisponibles.find(item => item.nombre === nombreReceta);
     if (lista && receta) lista.innerHTML = pintarComentarios(receta);
   };
 
   const abrirReceta = indice => {
-    const receta = recetasDisponibles[indice];
+    const receta = recetasActuales[indice];
+    if (!receta) return;
     const historial = leer('miCocinaHistorialRecetas');
-    historial.unshift({ ...receta, tiempo, porciones });
+    const tiempoReceta = receta.minutosPreparacion ?? receta.tiempo ?? tiempo;
+    const porcionesReceta = receta.porciones ?? porciones;
+    historial.unshift({ ...receta, tiempo: tiempoReceta, porciones: porcionesReceta });
     guardar('miCocinaHistorialRecetas', historial.slice(0, 30));
+    const ingredientes = Array.isArray(receta.ingredientes) ? receta.ingredientes : [];
+    const ingredientesFaltantes = Array.isArray(receta.ingredientesFaltantes) ? receta.ingredientesFaltantes : [];
     detalleReceta.innerHTML = `
       <button class="modal-cerrar" onclick="modalReceta.classList.remove('abierto')">Cerrar</button>
-      <h2>${receta.icono} ${receta.nombre}</h2>
+      <div class="detalle-receta-foto"><span aria-hidden="true">🍽️</span>${receta.imagenUrl ? `<img src="${receta.imagenUrl}" alt="${receta.nombre}" onerror="this.remove()">` : ''}</div>
+      <h2>${receta.icono || '🍽️'} ${receta.nombre}</h2>
       <p>${receta.descripcion}</p>
-      <p><b>Tiempo:</b> ${tiempo} · <b>Porciones:</b> ${porciones} · <b>Dificultad:</b> ${receta.dificultad}</p>
+      <p><b>Tiempo:</b> ${tiempoReceta}${typeof tiempoReceta === 'number' ? ' min' : ''} · <b>Porciones:</b> ${porcionesReceta} · <b>Dificultad:</b> ${receta.dificultad || 'No especificada'}</p>
+      <h3>Ingredientes</h3>
+      <ul>${ingredientes.map(ingrediente => `<li>${typeof ingrediente === 'string' ? ingrediente : [ingrediente.cantidad, ingrediente.unidad, ingrediente.nombre || ingrediente.ingrediente].filter(Boolean).join(' ')}</li>`).join('')}</ul>
+      ${ingredientesFaltantes.length ? `<h3>Ingredientes faltantes</h3><ul>${ingredientesFaltantes.map(ingrediente => `<li>${ingrediente}</li>`).join('')}</ul>` : ''}
       <h3>Preparación</h3>
-      <ol>${receta.pasos.map(paso => `<li>${paso}</li>`).join('')}</ol>
+      <ol>${(Array.isArray(receta.pasos) ? receta.pasos : []).map(paso => `<li>${paso}</li>`).join('')}</ol>
       ${formularioComentarios(receta)}
     `;
     modalReceta.classList.add('abierto');
@@ -640,43 +649,131 @@ const iniciarLobby = () => {
     };
   };
 
-  const renderizarRecetas = base => recetasDisponibles
-    .map((receta, indiceOriginal) => ({ receta, indiceOriginal }))
-    .filter(({ receta }) => dificultad === 'Todas' || receta.dificultad === dificultad)
-    .map(({ receta, indiceOriginal }) => `
-    <article class="receta-card">
-      <div class="receta-imagen">
-        <span>${receta.icono}</span>
-        <button class="favorito-corazon ${esFavorita(receta) ? 'activo' : ''}" onclick="toggleFavorito(${indiceOriginal})">
-          ${esFavorita(receta) ? '♥' : '♡'}
-        </button>
-      </div>
-      <div class="receta-cuerpo">
-        <h3>${receta.nombre} con ${base}</h3>
-        <p>${receta.descripcion}</p>
-        <div class="receta-datos">
-          <span>◷ ${tiempo}</span>
-          <span>🍽 ${porciones} porciones</span>
-          <span>⚑ ${receta.dificultad}</span>
-        </div>
-        ${esFavorita(receta) ? '<p class="favorito-mensaje">♥ Agregado a favoritos</p>' : ''}
-        ${pedirFaltantes.checked ? `
-          <div class="faltantes-lista">
-            <b>Faltan:</b> ${receta.faltantes.join(', ')}
-            <button class="link-compras" onclick="agregarCompras(${indiceOriginal})">Agregar a compras</button>
-          </div>
-        ` : ''}
-        <button class="boton-ver" onclick="abrirReceta(${indiceOriginal})">Ver receta completa</button>
-      </div>
-    </article>
-  `);
+  
+const renderizarRecetas = () => recetasActuales.map((receta, indice) => `
+  <article class="receta-card">
+    <div class="receta-imagen">
+      <span class="receta-placeholder" aria-hidden="true">🍽️</span>
+      ${receta.imagenUrl ? `<img class="receta-foto" src="${receta.imagenUrl}" alt="${receta.nombre}" onerror="this.remove()">` : ''}
+      <button
+        type="button"
+        class="favorito-corazon ${esFavorita(receta) ? 'activo' : ''}"
+        onclick="toggleFavorito(${indice})"
+      >
+        ${esFavorita(receta) ? '♥' : '♡'}
+      </button>
+    </div>
 
-  const generarRecetas = (registrar = true) => {
-    const ingredientes = ingredientesParaReceta();
-    const base = ingredientes.length ? ingredientes.join(', ') : 'los ingredientes de tu cocina';
+    <div class="receta-cuerpo">
+      <h3>${receta.nombre}</h3>
+      <p>${receta.descripcion || 'Receta generada por CookIQ.'}</p>
+
+      <div class="receta-datos">
+        <span>◷ ${receta.minutosPreparacion} min</span>
+        <span>🍽 ${receta.porciones} porciones</span>
+        <span>⚑ ${receta.dificultad}</span>
+      </div>
+
+      ${
+        pedirFaltantes.checked &&
+        receta.ingredientesFaltantes?.length
+          ? `<div class="faltantes-lista">
+              <b>Ingredientes faltantes:</b>
+              ${receta.ingredientesFaltantes.join(', ')}
+            </div>`
+          : ''
+      }
+
+      <button
+        type="button"
+        class="boton-ver"
+        onclick="abrirReceta(${indice})"
+      >
+        Ver receta completa
+      </button>
+    </div>
+  </article>
+`);
+
+  
+const generarRecetas = async (registrar = true) => {
+  const entrada = buscarIngrediente.value.trim();
+  const ingredientes = ingredientesParaReceta();
+
+  // Debe existir una frase o al menos un ingrediente seleccionado.
+  if (!entrada && ingredientes.length === 0) {
+    alert('Escribe qué quieres cocinar o selecciona ingredientes.');
+    buscarIngrediente.focus();
+    return;
+  }
+
+  // Convierte el filtro de tiempo a minutos para enviarlo al backend.
+  const tiemposEnMinutos = {
+    '10 min': 10,
+    '20 min': 20,
+    '30 min': 30,
+    '50 min': 50,
+    '1 hora': 60,
+    'Más de 2 horas': 180
+  };
+
+  const tiempoMaximo = tiemposEnMinutos[tiempo] || 30;
+
+  // Recupera las restricciones guardadas localmente.
+  // Más adelante el backend debe verificarlas directamente en MySQL.
+  const perfil = obtenerPerfilActivo() || {};
+
+  const botonGenerar = obtenerElemento('generarRecetas');
+  const textoOriginal = botonGenerar?.textContent;
+
+  try {
+    if (botonGenerar) {
+      botonGenerar.disabled = true;
+      botonGenerar.textContent = 'Generando recetas...';
+    }
+
+    const respuesta = await fetch('/generar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        consulta: entrada,
+        ingredientes,
+        tiempoMaximo,
+        porciones: Number(porciones),
+        dificultad,
+        pedirFaltantes: pedirFaltantes.checked,
+        alergias: perfil.alergias || [],
+        intolerancias: perfil.intolerancias || []
+      })
+    });
+
+    const textoRespuesta = await respuesta.text();
+    console.log('Estado HTTP:', respuesta.status);
+    console.log('Respuesta del servidor:', textoRespuesta);
+
+    let datos;
+    try {
+      datos = JSON.parse(textoRespuesta);
+    } catch (error) {
+      console.error('El servidor devolvió una respuesta que no es JSON.', error);
+      throw new Error('El servidor devolvió una respuesta que no es JSON. Revisa la consola para ver el contenido recibido.');
+    }
+
+    if (!respuesta.ok || !datos.ok) {
+      throw new Error(
+        datos.mensaje || 'No se pudieron generar las recetas.'
+      );
+    }
+
+    // Guardamos las recetas reales devueltas por Gemini.
+    recetasActuales = datos.recetas;
 
     guardar('miCocinaRecetasGeneradas', {
-      base,
+      recetas: recetasActuales,
+      consulta: entrada,
+      ingredientes,
       tiempo,
       porciones,
       dificultad,
@@ -685,29 +782,60 @@ const iniciarLobby = () => {
 
     if (registrar) {
       const historial = leer('miCocinaHistorialBusquedas');
+
       historial.unshift({
-        ingredientes: ingredientes.length ? ingredientes : ['Sin ingredientes seleccionados'],
+        ingredientes: [
+          ...(entrada ? [entrada] : []),
+          ...ingredientes
+        ],
         fecha: new Date().toLocaleString('es-CL')
       });
+
       guardar('miCocinaHistorialBusquedas', historial.slice(0, 30));
     }
 
-    obtenerElemento('recetas').innerHTML = renderizarRecetas(base).join('');
-  };
+    obtenerElemento('recetas').innerHTML =
+      renderizarRecetas().join('') ||
+      '<p class="sin-resultados">No se encontraron recetas. Prueba con otros ingredientes.</p>';
 
-  const cargarRecetasGeneradas = () => {
-    const resultadosGuardados = leer('miCocinaRecetasGeneradas', null);
-    if (!resultadosGuardados) {
-      obtenerElemento('recetas').innerHTML = mensajeSinRecetas;
-      return;
+  } catch (error) {
+    console.error('Error al generar recetas:', error);
+    alert(error.message || 'Ocurrió un error al generar las recetas.');
+  } finally {
+    if (botonGenerar) {
+      botonGenerar.disabled = false;
+      botonGenerar.textContent = textoOriginal || '✨ Generar recetas';
     }
+  }
+};
 
-    tiempo = resultadosGuardados.tiempo || tiempo;
-    porciones = resultadosGuardados.porciones || porciones;
-    dificultad = resultadosGuardados.dificultad || dificultad;
-    pedirFaltantes.checked = Boolean(resultadosGuardados.pedirFaltantes);
-    obtenerElemento('recetas').innerHTML = renderizarRecetas(resultadosGuardados.base).join('') || mensajeSinRecetas;
-  };
+  
+const cargarRecetasGeneradas = () => {
+  const resultadosGuardados = leer('miCocinaRecetasGeneradas', null);
+
+  if (!resultadosGuardados || !Array.isArray(resultadosGuardados.recetas)) {
+    recetasActuales = [];
+    obtenerElemento('recetas').innerHTML = mensajeSinRecetas;
+    return;
+  }
+
+  tiempo = resultadosGuardados.tiempo || tiempo;
+  porciones = resultadosGuardados.porciones || porciones;
+  dificultad = resultadosGuardados.dificultad || dificultad;
+
+  [['tiempos', tiempo], ['porciones', porciones], ['dificultad', dificultad]].forEach(([id, valor]) => {
+    obtenerElemento(id)?.querySelectorAll('.filtro-opcion').forEach(opcion => {
+      opcion.classList.toggle('seleccionada', opcion.dataset.v === String(valor));
+    });
+  });
+
+  pedirFaltantes.checked = Boolean(resultadosGuardados.pedirFaltantes);
+
+  recetasActuales = resultadosGuardados.recetas;
+
+  obtenerElemento('recetas').innerHTML =
+    renderizarRecetas().join('') || mensajeSinRecetas;
+};
 
   buscarIngrediente.oninput = evento => sugerirIngredientes(evento.target.value, sugerencias, 'agregarIngrediente');
   obtenerElemento('abrirFiltros').onclick = () => modalFiltros.classList.add('abierto');
@@ -729,15 +857,14 @@ const iniciarLobby = () => {
   };
 
   window.toggleFavorito = indice => {
+    const receta = recetasActuales[indice];
+    if (!receta) return;
     const lista = favoritos();
-    const posicion = lista.findIndex(item => item.nombre === recetasDisponibles[indice].nombre);
+    const posicion = lista.findIndex(item => item.nombre === receta.nombre);
     if (posicion >= 0) lista.splice(posicion, 1);
-    else lista.push({ ...recetasDisponibles[indice], tiempo, porciones });
+    else lista.push({ ...receta, tiempo: receta.minutosPreparacion ?? receta.tiempo ?? tiempo, porciones: receta.porciones ?? porciones });
     guardar('miCocinaFavoritos', lista);
-    const resultadosGuardados = leer('miCocinaRecetasGeneradas', null);
-    if (resultadosGuardados) {
-      obtenerElemento('recetas').innerHTML = renderizarRecetas(resultadosGuardados.base).join('') || mensajeSinRecetas;
-    }
+    obtenerElemento('recetas').innerHTML = renderizarRecetas().join('') || mensajeSinRecetas;
   };
 
   window.agregarCompras = indice => {
