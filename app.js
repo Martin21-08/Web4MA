@@ -31,6 +31,7 @@ const viewsRoutes = require("./routes/viewsRoutes");
 const recetasRoutes = require("./routes/recetasRoutes");
 const catalogoRoutes = require("./routes/catalogoRoutes");
 const preferenciasRoutes = require("./routes/preferenciasRoutes");
+const historialRoutes = require("./routes/historialRoutes");
 
 
 const app = express();
@@ -168,6 +169,7 @@ app.use("/", viewsRoutes);
 app.use("/", recetasRoutes);
 app.use("/catalogos", catalogoRoutes);
 app.use("/preferencias", preferenciasRoutes);
+app.use("/api/historial", historialRoutes);
 
 // ======================================
 // Rutas de Firebase

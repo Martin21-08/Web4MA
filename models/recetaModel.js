@@ -71,30 +71,6 @@ const RecetaModel = {
     return resultado.affectedRows > 0;
   },
 
-  // Registra una búsqueda autenticada una sola vez por solicitud.
-  registrarBusqueda: async ({ idUsuario, textoBusqueda, dificultadSolicitada, minutosMaximos, porciones }) => {
-    if (!Number.isInteger(idUsuario) || idUsuario < 1) {
-      throw new Error('La sesión contiene un identificador de usuario inválido.');
-    }
-
-    let dificultadSolicitadaId = null;
-    if (dificultadSolicitada && dificultadSolicitada !== 'Todas') {
-      const [dificultades] = await pool.execute(
-        'SELECT id_dificultad FROM dificultad WHERE nombre = ? LIMIT 1',
-        [dificultadSolicitada]
-      );
-      if (!dificultades.length) throw new Error('No existe la dificultad solicitada en el catálogo.');
-      dificultadSolicitadaId = dificultades[0].id_dificultad;
-    }
-
-    await pool.execute(
-      `INSERT INTO historial_busqueda
-        (id_usuario, texto_busqueda, id_dificultad, minutos_maximos, cantidad_porciones)
-       VALUES (?, ?, ?, ?, ?)`,
-      [idUsuario, textoBusqueda || null, dificultadSolicitadaId, minutosMaximos, porciones]
-    );
-  },
-
   // Persiste recetas de Gemini y todas sus relaciones en el esquema actual.
   guardarGeneradas: async (recetas, { idUsuario = null, dificultadSolicitada, minutosMaximos, porciones }) => {
     const connection = await pool.getConnection();

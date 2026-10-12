@@ -1,4 +1,3 @@
-
 const { GoogleGenAI } = require("@google/genai");
 
 // ==================================================
@@ -55,6 +54,42 @@ const generarContenidoConReintentos = async solicitud => {
         }
     }
 };
+
+const normalizarIngrediente = valor => String(valor || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/s$/, '');
+
+const extraerIngredientesConsulta = consulta => {
+    const coincidencia = consulta.match(/\b(?:con|usando|ingredientes?:)\s+(.+)$/i);
+    if (!coincidencia) return [];
+    return coincidencia[1]
+        .replace(/\b(?:para\s+\d+\s+porciones?|rapido|rapida|facil|faciles)\b.*$/i, '')
+        .split(/\s*(?:,|;|\+|\by\b|\be\b)\s*/i)
+        .map(item => item.replace(/^(?:un|una|unos|unas|el|la|los|las)\s+/i, '').trim())
+        .filter(item => item && item.split(/\s+/).length <= 5);
+};
+
+const contieneIngrediente = (ingredientesReceta, solicitado) => {
+    const objetivo = normalizarIngrediente(solicitado);
+    if (!objetivo) return true;
+    return ingredientesReceta.some(ingrediente => {
+        const nombre = normalizarIngrediente(ingrediente.nombre);
+        return nombre === objetivo || nombre.startsWith(`${objetivo} `) || objetivo.startsWith(`${nombre} `);
+    });
+};
+
+const firmaReceta = receta => [
+    receta.ingredientes
+        .map(ingrediente => normalizarIngrediente(ingrediente.nombre))
+        .sort()
+        .join('|'),
+    receta.pasos.map(paso => normalizarIngrediente(paso)).join('|')
+].join('::');
 
 // ==================================================
 // 2. GENERAR RECETAS
@@ -176,17 +211,25 @@ INTERPRETACIÓN DE LA BÚSQUEDA:
 
 REGLAS PARA LAS RECETAS:
 
-1. Genera hasta 3 recetas distintas.
+1. Intenta generar exactamente 3 recetas distintas y coherentes. Si no hay
+   tres opciones razonables y seguras, devuelve solo las válidas; no inventes
+   recetas absurdas para alcanzar tres. Deben diferir en preparación y
+   resultado, no solo en el nombre.
 2. Respeta el tiempo máximo y las porciones solicitadas.
 3. Respeta la dificultad elegida; si es "Todas", puedes elegir
    entre Fácil, Medio y Difícil.
-4. Si no se permiten ingredientes faltantes, no agregues
+4. Incluye obligatoriamente en CADA receta todos los ingredientes alimentarios
+   que el usuario menciona explícitamente en la búsqueda y todos los de
+   INGREDIENTES SELECCIONADOS. No sustituyas ni omitas ninguno. Puedes agregar
+   ingredientes adicionales coherentes y necesarios para preparar el plato.
+   No uses otros ingredientes de la despensa que no fueron seleccionados.
+5. Si no se permiten ingredientes faltantes, no agregues
    ingredientes opcionales que el usuario no haya autorizado.
-5. Si se permiten ingredientes faltantes, indícalos por separado.
-6. No inventes información nutricional.
-7. No generes recetas que incluyan deliberadamente ingredientes
+6. Si se permiten ingredientes faltantes, indícalos por separado.
+7. No inventes información nutricional.
+8. No generes recetas que incluyan deliberadamente ingredientes
    asociados a las alergias o intolerancias informadas.
-8. La respuesta de la IA no sustituye la validación de seguridad
+9. La respuesta de la IA no sustituye la validación de seguridad
    alimentaria que debe realizar el backend.
 
 REGLAS PARA LOS INGREDIENTES:
@@ -342,8 +385,27 @@ Si no puedes proponer una receta razonable, devuelve:
         }
     }
 
-    // Devuelve las recetas al controlador.
-    return resultado.recetas;
+    // Valida ingredientes explicitados en la frase y los seleccionados.
+    const ingredientesSolicitados = [
+        ...ingredientesLimpios,
+        ...extraerIngredientesConsulta(consultaLimpia)
+    ];
+    const recetasValidas = resultado.recetas.filter(receta =>
+        ingredientesSolicitados.every(solicitado => contieneIngrediente(receta.ingredientes, solicitado))
+    );
+
+    // Descarta variantes que repiten exactamente los mismos ingredientes.
+    const firmas = new Set();
+    const recetasDistintas = recetasValidas.filter(receta => {
+        const firma = firmaReceta(receta);
+        if (firmas.has(firma)) return false;
+        firmas.add(firma);
+        return true;
+    }).slice(0, 3);
+
+    // Conserva el contrato del controlador: devuelve un arreglo, que puede
+    // tener menos de tres elementos cuando no haya suficientes opciones válidas.
+    return recetasDistintas;
 };
 
 // ==================================================

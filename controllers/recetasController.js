@@ -1,6 +1,7 @@
 
 const ingredienteModel = require('../models/ingredienteModel');
 const recetaModel = require('../models/recetaModel');
+const historialModel = require('../models/historialModel');
 
 const {
     generarRecetasConGemini
@@ -163,7 +164,7 @@ const generarRecetas = async (req, res, next) => {
 
         if (idUsuario !== null) {
             try {
-                await recetaModel.registrarBusqueda({
+                await historialModel.registrarBusqueda({
                     idUsuario,
                     textoBusqueda,
                     dificultadSolicitada: dificultad,
