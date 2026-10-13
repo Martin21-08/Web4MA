@@ -6,7 +6,6 @@ const historialModel = require('../models/historialModel');
 const {
     generarRecetasConGemini
 } = require('../services/geminiService');
-const { generarImagenReceta } = require('../services/imagenRecetaService');
 
 const sanitizarMensajeError = mensaje => {
     const credenciales = [process.env.GEMINI_API_KEY, process.env.MYSQL_PASSWORD]
@@ -227,18 +226,10 @@ const generarRecetas = async (req, res, next) => {
             });
         }
 
-        const recetasConImagen = await Promise.all(recetas.map(async receta => {
-            if (receta.imagen?.url) {
-                return { ...receta, imagenUrl: receta.imagen.url };
-            }
-
-            try {
-                const imagenUrl = await generarImagenReceta(receta);
-                return { ...receta, imagenUrl: imagenUrl || null };
-            } catch (error) {
-                console.error('Error inesperado al generar la imagen de una receta:', error?.code || error?.name || 'Error');
-                return { ...receta, imagenUrl: null };
-            }
+        // Conserva la URL de Unsplash en el campo que persiste MySQL.
+        const recetasConImagen = recetas.map(receta => ({
+            ...receta,
+            imagenUrl: receta.imagen?.url || null
         }));
 
         try {
