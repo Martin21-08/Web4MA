@@ -228,6 +228,10 @@ const generarRecetas = async (req, res, next) => {
         }
 
         const recetasConImagen = await Promise.all(recetas.map(async receta => {
+            if (receta.imagen?.url) {
+                return { ...receta, imagenUrl: receta.imagen.url };
+            }
+
             try {
                 const imagenUrl = await generarImagenReceta(receta);
                 return { ...receta, imagenUrl: imagenUrl || null };

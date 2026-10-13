@@ -232,6 +232,12 @@ const iniciarLoginSms = () => {
 
 const obtenerElemento = id => document.getElementById(id);
 const favoritos = () => leer('miCocinaFavoritos');
+const obtenerImagenReceta = receta => receta?.imagen?.url || receta?.imagenUrl || null;
+const obtenerCreditoImagen = receta => (
+  receta?.imagen?.autor && receta.imagen.autorUrl && receta.imagen.fuenteUrl
+    ? `<p class="credito-foto">Foto de <a href="${receta.imagen.autorUrl}" target="_blank" rel="noopener noreferrer">${receta.imagen.autor}</a> en <a href="${receta.imagen.fuenteUrl}" target="_blank" rel="noopener noreferrer">Unsplash</a></p>`
+    : ''
+);
 
 // ============================================================================
 // SIDEBAR
@@ -605,13 +611,15 @@ const iniciarLobby = () => {
     const historial = leer('miCocinaHistorialRecetas');
     const tiempoReceta = receta.minutosPreparacion ?? receta.tiempo ?? tiempo;
     const porcionesReceta = receta.porciones ?? porciones;
+    const imagenUrl = obtenerImagenReceta(receta);
     historial.unshift({ ...receta, tiempo: tiempoReceta, porciones: porcionesReceta });
     guardar('miCocinaHistorialRecetas', historial.slice(0, 30));
     const ingredientes = Array.isArray(receta.ingredientes) ? receta.ingredientes : [];
     const ingredientesFaltantes = Array.isArray(receta.ingredientesFaltantes) ? receta.ingredientesFaltantes : [];
     detalleReceta.innerHTML = `
       <button class="modal-cerrar" onclick="modalReceta.classList.remove('abierto')">Cerrar</button>
-      <div class="detalle-receta-foto"><span aria-hidden="true">🍽️</span>${receta.imagenUrl ? `<img src="${receta.imagenUrl}" alt="${receta.nombre}" onerror="this.remove()">` : ''}</div>
+      <div class="detalle-receta-foto">${imagenUrl ? `<img src="${imagenUrl}" alt="${receta.imagen?.alt || receta.nombre}" onerror="this.remove()">` : '<span aria-hidden="true">🍽️</span>'}</div>
+      ${obtenerCreditoImagen(receta)}
       <h2>${receta.icono || '🍽️'} ${receta.nombre}</h2>
       <p>${receta.descripcion}</p>
       <p><b>Tiempo:</b> ${tiempoReceta}${typeof tiempoReceta === 'number' ? ' min' : ''} · <b>Porciones:</b> ${porcionesReceta} · <b>Dificultad:</b> ${receta.dificultad || 'No especificada'}</p>
@@ -653,8 +661,9 @@ const iniciarLobby = () => {
 const renderizarRecetas = () => recetasActuales.map((receta, indice) => `
   <article class="receta-card">
     <div class="receta-imagen">
-      <span class="receta-placeholder" aria-hidden="true">🍽️</span>
-      ${receta.imagenUrl ? `<img class="receta-foto" src="${receta.imagenUrl}" alt="${receta.nombre}" onerror="this.remove()">` : ''}
+      ${obtenerImagenReceta(receta)
+        ? `<img class="receta-foto" src="${obtenerImagenReceta(receta)}" alt="${receta.imagen?.alt || receta.nombre}" onerror="this.remove()">`
+        : '<span class="receta-placeholder" aria-hidden="true">🍽️</span>'}
       <button
         type="button"
         class="favorito-corazon ${esFavorita(receta) ? 'activo' : ''}"
@@ -667,6 +676,7 @@ const renderizarRecetas = () => recetasActuales.map((receta, indice) => `
     <div class="receta-cuerpo">
       <h3>${receta.nombre}</h3>
       <p>${receta.descripcion || 'Receta generada por CookIQ.'}</p>
+      ${obtenerCreditoImagen(receta)}
 
       <div class="receta-datos">
         <span>◷ ${receta.minutosPreparacion} min</span>
@@ -899,12 +909,15 @@ const iniciarFavoritos = () => {
     listaFavoritos.innerHTML = lista.length ? lista.map((receta, indice) => `
       <article class="receta-card">
         <div class="receta-imagen">
-          <span>${receta.icono}</span>
+          ${obtenerImagenReceta(receta)
+            ? `<img class="receta-foto" src="${obtenerImagenReceta(receta)}" alt="${receta.imagen?.alt || receta.nombre}" onerror="this.remove()">`
+            : `<span class="receta-placeholder" aria-hidden="true">${receta.icono || '🍽️'}</span>`}
           <button class="favorito-corazon activo" onclick="quitarFavorito(${indice})">♥</button>
         </div>
         <div class="receta-cuerpo">
           <h3>${receta.nombre}</h3>
           <p>${receta.descripcion}</p>
+          ${obtenerCreditoImagen(receta)}
           <div class="receta-datos">◷ ${receta.tiempo} · 🍽 ${receta.porciones} porciones</div>
           <button class="boton-ver" onclick="quitarFavorito(${indice})">Quitar de favoritos</button>
         </div>
