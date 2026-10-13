@@ -1,4 +1,5 @@
 const { GoogleGenAI } = require("@google/genai");
+const {agregarImagenes} = require("./unsplashService");
 
 // ==================================================
 // 1. CONFIGURAR GEMINI
@@ -195,65 +196,95 @@ RESTRICCIONES INFORMADAS:
 ¿SE PERMITEN INGREDIENTES FALTANTES?:
 ${pedirFaltantes ? "Sí" : "No"}.
 
-INTERPRETACIÓN DE LA BÚSQUEDA:
-
-1. Interpreta frases naturales como:
-   "Hola, quiero hacer algo con pan, huevo y harina".
-2. Identifica los ingredientes que menciona el usuario.
-3. Distingue los ingredientes de las palabras de cortesía.
-4. Si el usuario expresa una intención culinaria concreta,
-   tenla en cuenta al generar las recetas.
-5. No interpretes como ingrediente una palabra que claramente
-   no representa un alimento.
-6. Prioriza los ingredientes que el usuario indicó.
-7. No afirmes que un ingrediente existe en la despensa o en
-   el catálogo de CookIQ sin que el backend lo haya comprobado.
-
-REGLAS PARA LAS RECETAS:
-
-1. Intenta generar exactamente 3 recetas distintas y coherentes. Si no hay
-   tres opciones razonables y seguras, devuelve solo las válidas; no inventes
-   recetas absurdas para alcanzar tres. Deben diferir en preparación y
-   resultado, no solo en el nombre.
-2. Respeta el tiempo máximo y las porciones solicitadas.
-3. Respeta la dificultad elegida; si es "Todas", puedes elegir
-   entre Fácil, Medio y Difícil.
-4. Incluye obligatoriamente en CADA receta todos los ingredientes alimentarios
-   que el usuario menciona explícitamente en la búsqueda y todos los de
-   INGREDIENTES SELECCIONADOS. No sustituyas ni omitas ninguno. Puedes agregar
-   ingredientes adicionales coherentes y necesarios para preparar el plato.
-   No uses otros ingredientes de la despensa que no fueron seleccionados.
-5. Si no se permiten ingredientes faltantes, no agregues
-   ingredientes opcionales que el usuario no haya autorizado.
-6. Si se permiten ingredientes faltantes, indícalos por separado.
-7. No inventes información nutricional.
-8. No generes recetas que incluyan deliberadamente ingredientes
-   asociados a las alergias o intolerancias informadas.
-9. La respuesta de la IA no sustituye la validación de seguridad
-   alimentaria que debe realizar el backend.
-
-REGLAS PARA LOS INGREDIENTES:
-
-1. Cada ingrediente debe tener nombre, cantidad y unidad.
-2. Utiliza cantidades coherentes con las porciones.
-3. Evita cantidades imprecisas cuando puedas indicar una medida.
-4. Los ingredientes deben coincidir con los utilizados en los pasos.
-5. Los ingredientes faltantes deben identificarse por separado.
-
-REGLAS PARA LOS PASOS:
-
-1. Incluye entre 5 y 10 pasos cuando la receta lo requiera.
-2. Numera los pasos en orden cronológico.
-3. Explica las preparaciones previas: lavar, pelar, cortar o medir.
-4. Indica utensilios cuando sea relevante.
-5. Especifica temperatura, intensidad del fuego y tiempos
-   cuando corresponda.
-6. Explica cómo comprobar que los alimentos están cocidos.
-7. Divide las tareas complejas en pasos concretos.
-8. No omitas etapas necesarias.
-9. Evita instrucciones vagas como "cocina hasta que esté listo".
-10. Asegura que los pasos coincidan con las cantidades indicadas.
-11. Incluye medidas de seguridad alimentaria cuando corresponda.
+CookIQ — Generación precisa de recetas1. Objetivo
+Interpreta la búsqueda del usuario y genera hasta 3 recetas diferentes, coherentes, seguras y compatibles con las restricciones recibidas.
+Prioriza, en este orden:
+Seguridad alimentaria y alergias.
+Cumplimiento de los ingredientes obligatorios.
+Restricciones de tiempo, porciones y dificultad.
+Coherencia culinaria y viabilidad de la receta.
+Variedad entre recetas.
+Claridad y concisión.
+Nunca sacrifiques seguridad ni inventes información para cumplir una cantidad de recetas.
+2. Interpretación de la búsqueda
+Identifica los ingredientes alimentarios mencionados explícitamente por el usuario.
+Distingue ingredientes, cortesía, instrucciones, preferencias y restricciones.
+Interpreta la intención culinaria, como desayunar, hornear, freír o preparar un postre.
+No interpretes palabras de cortesía ni palabras que no representen alimentos como ingredientes.
+Normaliza nombres y sinónimos cuando sea inequívoco, sin cambiar el ingrediente solicitado.
+No afirmes que un ingrediente está disponible en la despensa o el catálogo sin confirmación del backend.
+No confundas ingredientes mencionados en el texto con ingredientes confirmados en la despensa.
+3. Ingredientes y disponibilidad
+Considera obligatorios:
+Todos los ingredientes alimentarios explícitamente solicitados por el usuario.
+Todos los ingredientes de la lista INGREDIENTES SELECCIONADOS.
+Cada receta debe incluir todos los ingredientes obligatorios, sin sustituirlos ni omitirlos.
+Puedes utilizar ingredientes adicionales únicamente cuando estén autorizados por las reglas de disponibilidad recibidas del backend.
+Si se permiten ingredientes faltantes:
+Inclúyelos en una lista separada.
+Identifica claramente cuáles no están disponibles.
+No afirmes que están en la despensa.
+Si no se permiten ingredientes faltantes:
+No añadas ingredientes que requieran compras o que no estén autorizados.
+No presentes una receta como viable si necesita un ingrediente no disponible.
+Si las restricciones son incompatibles, devuelve solo las recetas válidas.
+No inventes disponibilidad, IDs, existencias ni datos del catálogo.
+4. Cantidad y variedad de recetas
+Genera hasta 3 recetas.
+Devuelve exactamente 3 solo cuando existan 3 alternativas válidas, seguras y suficientemente diferentes.
+Si no hay 3 opciones razonables, devuelve únicamente las válidas.
+No crees variaciones superficiales de una misma receta para completar la cantidad.
+Cada receta debe tener un resultado y un método de preparación diferenciados.
+Respeta el tiempo máximo, las porciones y la dificultad solicitados.
+Si la dificultad es "Todas", puedes elegir Fácil, Medio o Difícil.
+Si no se especifica un filtro, utiliza únicamente los valores predeterminados definidos por el backend. No inventes preferencias del usuario.
+5. Ingredientes de cada receta
+Cada ingrediente debe incluir:
+nombre
+cantidad numérica cuando sea posible
+unidad
+estado de disponibilidad, si corresponde
+Reglas:
+Ajusta las cantidades al número de porciones.
+Usa medidas concretas y culinariamente razonables.
+No inventes cantidades de ingredientes que no puedan justificarse.
+Mantén consistencia entre los ingredientes y los pasos.
+No incluyas ingredientes opcionales no autorizados.
+No incluyas ingredientes adicionales solo para mejorar el sabor si no están permitidos.
+Si una cantidad es una unidad discreta, utiliza una unidad apropiada; para ingredientes fraccionables, utiliza medidas culinarias claras.
+6. Preparación
+Incluye entre 5 y 10 pasos cuando la complejidad de la receta lo requiera. Para preparaciones simples, utiliza los pasos suficientes para que sean reproducibles.
+Los pasos deben:
+Estar numerados en orden cronológico.
+Indicar preparaciones previas, como lavar, pelar, cortar y medir.
+Mencionar utensilios relevantes.
+Especificar temperaturas, intensidad del fuego y tiempos cuando corresponda.
+Indicar cómo comprobar el punto de cocción.
+Incluir precauciones pertinentes para la manipulación y cocción segura de alimentos.
+Coincidir exactamente con los ingredientes y cantidades declarados.
+Evitar instrucciones vagas y pasos innecesarios.
+7. Alergias y seguridad
+No generes recetas que incluyan deliberadamente alérgenos o ingredientes incompatibles con las alergias e intolerancias informadas.
+No asumas que una sustitución es segura sin verificarla.
+Si los ingredientes obligatorios contradicen una restricción de seguridad, no generes esa receta.
+No afirmes que una receta es segura para una alergia únicamente porque no se menciona el alérgeno en el nombre del plato.
+La validación final de alergias, disponibilidad y seguridad corresponde al backend.
+8. Nutrición
+No inventes calorías, macronutrientes, vitaminas ni otros valores nutricionales. Solo proporciona datos nutricionales cuando exista una fuente de cálculo o información validada.
+9. Salida
+Devuelve exclusivamente un objeto JSON válido, sin Markdown, comentarios, explicaciones externas ni bloques de código.
+Utiliza el esquema definido por la aplicación. Incluye, como mínimo:
+recetas
+nombre y descripción de cada receta
+tiempo estimado
+porciones
+dificultad
+ingredientes con cantidades y unidades
+ingredientes faltantes, si corresponde
+pasos numerados
+Si no existe ninguna receta válida, devuelve una lista vacía y un código de resultado que permita al backend informar que no hay opciones compatibles.
+No incluyas propiedades adicionales que no estén definidas por el esquema.
+No afirmes que has consultado la despensa, el catálogo o las existencias. Esos datos deben proceder del backend.
 
 FORMATO DE RESPUESTA:
 
@@ -405,7 +436,9 @@ Si no puedes proponer una receta razonable, devuelve:
 
     // Conserva el contrato del controlador: devuelve un arreglo, que puede
     // tener menos de tres elementos cuando no haya suficientes opciones válidas.
-    return recetasDistintas;
+    const recetasConImagenes = await agregarImagenes(recetasDistintas);
+    
+    return recetasConImagenes;
 };
 
 // ==================================================
