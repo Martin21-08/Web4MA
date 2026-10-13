@@ -20,7 +20,7 @@ const HistorialModel = {
 
     const [resultado] = await pool.execute(
       `INSERT INTO historial_busqueda
-        (id_usuario, texto_busqueda, id_dificultad, minutos_maximos, cantidad_porciones)
+        (id_usuario, texto_busqueda, id_dificultad, max_minutos, cantidad_porciones)
        VALUES (?, ?, ?, ?, ?)`,
       [idUsuario, textoBusqueda || null, idDificultad, minutosMaximos, porciones]
     );

@@ -205,7 +205,7 @@ No agregues propiedades extra.
     // ==================================================
 
     const respuesta = await generarContenidoConReintentos({
-        model: "gemini-3.8-flash",
+        model: "gemini-3.6-flash",
         contents: prompt,
         config: {
             responseMimeType: "application/json",
