@@ -1,5 +1,5 @@
 const { GoogleGenAI } = require("@google/genai");
-const {agregarImagenes} = require("./unsplashService");
+const { agregarImagenes } = require("./unsplashService");
 
 // ==================================================
 // 1. CONFIGURAR GEMINI
@@ -315,9 +315,7 @@ No agregues propiedades extra.
 
     // Conserva el contrato del controlador: devuelve un arreglo, que puede
     // tener menos de tres elementos cuando no haya suficientes opciones válidas.
-    const recetasConImagenes = await agregarImagenes(recetasDistintas);
-    
-    return recetasConImagenes;
+    return await agregarImagenes(recetasDistintas);
 };
 
 // ==================================================
