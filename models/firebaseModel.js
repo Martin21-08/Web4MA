@@ -40,7 +40,6 @@ async function buscarPorCorreo(correo) {
             apellidos,
             correo,
             telefono,
-            contrasena_hash,
             google_id,
             id_suscripcion,
             tokens_disponibles,
@@ -141,6 +140,7 @@ async function crearUsuarioGoogle({
     nombres,
     apellidos,
     correo,
+    telefono,
     googleId
 }) {
     const [resultado] = await pool.query(
@@ -150,14 +150,16 @@ async function crearUsuarioGoogle({
             nombres,
             apellidos,
             correo,
+            telefono,
             google_id
         )
-        VALUES (?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?)
         `,
         [
             nombres,
             apellidos,
             correo,
+            telefono || null,
             googleId
         ]
     );

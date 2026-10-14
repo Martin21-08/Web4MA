@@ -32,10 +32,29 @@
       <%# La validación se realiza en el servidor para mostrar un flash si no se acepta. %>
       <label class="aceptar-terminos"><input type="checkbox" name="Terminos" value="Terminos"> <span>Acepto los <a href="/usuarios/terminos" target="_blank" rel="noopener noreferrer">términos y condiciones</a></span></label>
       <button class="btn-register" type="submit" id="btnCrearCuenta">Crear cuenta</button>
-      <a href="/usuarios/login" class="btn-secundario">Cancelar</a>
+
+      <%- include('Partials/registerGoogle') %>
+
+      <button type="reset" class="btn-secundario" id="cancelarRegistro">Cancelar</button>
       <a href="/usuarios/login" class="login-link">¿Ya tienes cuenta? Inicia sesión</a>
     </form>
+    <section class="modal-inicio" id="modalRegistroGoogle" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tituloRegistroGoogle">
+      <form class="modal-panel modal-registro-login" id="formRegistroGoogle" aria-labelledby="tituloRegistroGoogle">
+        <button class="modal-cerrar" type="button" id="cancelarRegistroGoogle">Cancelar</button>
+        <h2 id="tituloRegistroGoogle">Completa tu registro</h2>
+        <p>Confirma tus datos para crear tu cuenta.</p>
+        <div class="perfil-campos">
+          <label>Nombre <input id="googleRegistroNombre" name="nombres" type="text" required autocomplete="given-name"></label>
+          <label>Apellido <input id="googleRegistroApellido" name="apellidos" type="text" required autocomplete="family-name"></label>
+          <label>Correo electrónico <input id="googleRegistroCorreo" name="correo" type="email" required readonly></label>
+          <label>Teléfono <input id="googleRegistroTelefono" name="telefono" type="tel" placeholder="+56 9 1234 5678" autocomplete="tel"></label>
+        </div>
+        <label class="aceptar-terminos"><input type="checkbox" name="Terminos" value="Terminos" required> <span>Acepto los <a href="/usuarios/terminos" target="_blank" rel="noopener noreferrer">términos y condiciones</a></span></label>
+        <button class="boton-generar" type="submit" id="guardarRegistroGoogle">Guardar y entrar al lobby</button>
+      </form>
+    </section>
   </main>
   <script src="/Js/app.js"></script>
+  <script type="module" src="/Js/firebase-auth.js"></script>
 </body>
 </html>

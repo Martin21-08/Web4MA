@@ -30,81 +30,138 @@ function obtenerConfiguracionFirebase(req, res) {
 
 
 /**
- * Login mediante Google.
- *
- * Busca primero por google_id.
- * Si no existe, busca por correo.
- * Si tampoco existe, crea el usuario.
+ * Inicia sesión solo si el correo verificado ya existe en CookIQ.
  */
 async function loginGoogle(req, res) {
     try {
-        const {
-            googleId,
-            nombres,
-            apellidos,
-            correo
-        } = req.body;
+        const { googleId, correo } = req.firebaseGoogleUser;
+        let usuario = await firebaseModel.buscarPorCorreo(correo);
 
-        let usuario = await firebaseModel.buscarPorGoogleId(googleId);
-
-        if (usuario) {
-            req.session.usuario = usuario;
-
-            return res.json({
-                ok: true,
-                nuevo: false,
-                usuario
+        if (!usuario) {
+            return res.status(404).json({
+                ok: false,
+                error: 'Este Gmail no está registrado. Regístrate con Google para crear una cuenta.'
             });
         }
 
-        usuario = await firebaseModel.buscarPorCorreo(correo);
-
-        if (usuario) {
-
-            /*
-             * El usuario ya tenía una cuenta CookIQ.
-             * Ahora vinculamos su Google ID.
-             */
-            usuario = await firebaseModel.vincularGoogleId(
-                usuario.id_usuario,
-                googleId
-            );
-
-            req.session.usuario = usuario;
-
-            return res.json({
-                ok: true,
-                nuevo: false,
-                usuario
+        const usuarioConGoogleId = await firebaseModel.buscarPorGoogleId(googleId);
+        if (usuarioConGoogleId && usuarioConGoogleId.id_usuario !== usuario.id_usuario) {
+            return res.status(409).json({
+                ok: false,
+                error: 'Esta cuenta de Google ya está vinculada a otro usuario.'
             });
         }
 
-        /*
-         * No existe.
-         * Creamos una cuenta nueva.
-         */
-        usuario = await firebaseModel.crearUsuarioGoogle({
-            nombres,
-            apellidos,
-            correo,
-            googleId
-        });
+        if (usuario.google_id && usuario.google_id !== googleId) {
+            return res.status(409).json({
+                ok: false,
+                error: 'El Gmail ya está registrado con otra cuenta de Google.'
+            });
+        }
+
+        if (!usuario.google_id) {
+            usuario = await firebaseModel.vincularGoogleId(usuario.id_usuario, googleId);
+        }
 
         req.session.usuario = usuario;
 
-        res.status(201).json({
+        return res.json({
             ok: true,
-            nuevo: true,
             usuario
         });
 
     } catch (error) {
 
-        console.error('Error en login Google:', error);
+        console.error('Error en inicio de sesión con Google:', error);
 
         res.status(500).json({
             ok: false,
-            error: 'No se pudo iniciar sesión con Google.'
+            error: 'No se pudo iniciar sesión con Google. Inténtalo nuevamente.'
+        });
+    }
+}
+
+
+/**
+ * Registra una cuenta nueva después de que la persona completa sus datos.
+ */
+async function registrarGoogle(req, res) {
+    try {
+        const { googleId, correo } = req.firebaseGoogleUser;
+        const nombres = String(req.body.nombres || '').trim();
+        const apellidos = String(req.body.apellidos || '').trim();
+        const telefonoIngresado = String(req.body.telefono || '').trim();
+        const telefono = telefonoIngresado
+            ? telefonoIngresado.replace(/[\s()-]/g, '')
+            : null;
+        const terminosAceptados = ['Terminos', 'on', true].includes(req.body.Terminos);
+
+        if (!nombres || !apellidos) {
+            return res.status(400).json({
+                ok: false,
+                error: 'Debes ingresar tu nombre y apellido.'
+            });
+        }
+
+        if (!terminosAceptados) {
+            return res.status(400).json({
+                ok: false,
+                error: 'Debes aceptar los términos y condiciones para registrarte.'
+            });
+        }
+
+        if (telefono && !/^\+569\d{8}$/.test(telefono)) {
+            return res.status(400).json({
+                ok: false,
+                error: 'El teléfono debe tener formato +56 9 1234 5678.'
+            });
+        }
+
+        const usuarioExistente = await firebaseModel.buscarPorCorreo(correo);
+        if (usuarioExistente) {
+            return res.status(409).json({
+                ok: false,
+                error: 'Este Gmail ya está registrado. Inicia sesión con Google.'
+            });
+        }
+
+        const googleIdExistente = await firebaseModel.buscarPorGoogleId(googleId);
+        if (googleIdExistente) {
+            return res.status(409).json({
+                ok: false,
+                error: 'Esta cuenta de Google ya está registrada. Inicia sesión con Google.'
+            });
+        }
+
+        const usuario = await firebaseModel.crearUsuarioGoogle({
+            nombres,
+            apellidos,
+            correo,
+            telefono,
+            googleId
+        });
+
+        req.session.usuario = usuario;
+        return res.status(201).json({
+            ok: true,
+            usuario
+        });
+    } catch (error) {
+        console.error('Error en registro con Google:', {
+            code: error.code || 'UNKNOWN',
+            message: error.message || 'Sin detalle'
+        });
+
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({
+                ok: false,
+                error: 'El Gmail o teléfono ya está registrado.'
+            });
+        }
+
+        return res.status(500).json({
+            ok: false,
+            error: 'No se pudo guardar el registro con Google. Inténtalo nuevamente.'
         });
     }
 }
@@ -263,6 +320,7 @@ function cerrarSesion(req, res) {
 module.exports = {
     obtenerConfiguracionFirebase,
     loginGoogle,
+    registrarGoogle,
     loginTelefono,
     obtenerSesion,
     cerrarSesion

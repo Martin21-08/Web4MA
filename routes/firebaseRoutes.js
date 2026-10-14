@@ -27,6 +27,15 @@ router.post(
     firebaseController.loginGoogle
 );
 
+/*
+ * Registro con Google tras completar los datos del modelo usuario.
+ */
+router.post(
+    '/firebase/google/registro',
+    validarFirebase,
+    firebaseController.registrarGoogle
+);
+
 
 /*
  * Login mediante SMS
